@@ -1,0 +1,34 @@
+# Packages #
+*.gz
+*.tar
+*.zip
+
+
+# File Types #
+*.log
+*.pyo
+*.pyc
+*~
+*.swp
+
+# Environments #
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak
+
+# Folders #
+src/__pycache__/
+src/nohup.out
+src/keys.py
+data/log/*.log
+
+# Temp #
+akrios_ca
+akrios_ca.pub
+akrios_ca-cert.pub
+key.py
+

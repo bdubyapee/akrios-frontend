@@ -1,0 +1,10 @@
+./main.py:213: SyntaxWarning: "is" with a literal. Did you mean "=="?
+  if GameConnection.data_to_akrios and connection.state is 'connected':
+2019-12-08 14:48:31,756: __main__ - INFO - Creating Telnet Listener on port 6969
+2019-12-08 14:48:31,756: __main__ - INFO - Creating Websocket Listener on port 8989
+2019-12-08 14:48:31,763: asyncssh - INFO - Creating SSH listener on port 7979
+2019-12-08 14:48:31,764: __main__ - INFO - Launching Akrios front end loop:
+
+2019-12-08 14:48:44,829: telnetlib3.server - INFO - Connection from <Peer 127.0.0.1 55580>
+2019-12-08 14:48:45,330: __main__ - INFO - Adding client 2c8e87c4-3a6f-4b91-8385-059719780c46 to connections
+2019-12-08 14:48:59,479: telnetlib3.server - INFO - Connection closed for <Peer 127.0.0.1 55580>
