@@ -8,7 +8,7 @@
 """
     Initial test of separating server(Socket) and game logic for Akrios.
     End game is to have several front ends available (Telnet, Secure Telnet, SSH, Web, etc)
-    Should also allow to have connections stay up while restarting game.
+    Should also allow to have connections stay up while restarting game
 
     The file 'ssh_host_key' must exist with an SSH private key in it for server host key.
     The file 'ssh_host_key-cert.pub' may optionally be provided for an SSH host certificate.
