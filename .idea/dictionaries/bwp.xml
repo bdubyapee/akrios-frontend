@@ -7,6 +7,7 @@
       <w>asyncio</w>
       <w>coldboot</w>
       <w>coro</w>
+      <w>eachmsg</w>
       <w>jubelo</w>
       <w>levelname</w>
       <w>passphrase</w>
