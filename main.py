@@ -22,6 +22,7 @@ import asyncio
 import asyncssh
 import json
 import logging
+import signal
 import telnetlib3
 import time
 from uuid import uuid4
@@ -54,7 +55,7 @@ class PlayerConnection(object):
         self.state = state
         self.uuid = str(uuid4())
 
-    def connection_connected(self):
+    def notify_connected(self):
         payload = {'uuid': self.uuid,
                    'addr': self.addr,
                    'port': self.port}
@@ -63,7 +64,7 @@ class PlayerConnection(object):
                'payload': payload}
         GameConnection.client_to_akrios.append(json.dumps(msg, sort_keys=True, indent=4))
 
-    def connection_disconnected(self):
+    def notify_disconnected(self):
         payload = {'uuid': self.uuid,
                    'addr': self.addr,
                    'port': self.port}
@@ -73,16 +74,18 @@ class PlayerConnection(object):
         GameConnection.client_to_akrios.append(json.dumps(msg, sort_keys=True, indent=4))
 
     @classmethod
-    def add_client(cls, client):
+    def register_client(cls, client):
         log.info(f'Adding client {client.uuid} to connections')
         cls.connections[client.uuid] = client
+        client.notify_connected()
         cls.akrios_to_client[client.uuid] = []
 
     @classmethod
-    def del_client(cls, client):
+    def unregister_client(cls, client):
         if client.uuid in cls.connections:
             log.info(f'Deleting client {client.uuid} from connections')
             cls.connections.pop(client.uuid)
+            client.notify_disconnected()
             if client.uuid in cls.akrios_to_client:
                 log.info(f'del_client : Deleting akrios messages found outbound to client')
                 cls.akrios_to_client.pop(client.uuid)
@@ -108,13 +111,15 @@ async def client_read(reader, connection):
                    'payload': payload}
             GameConnection.client_to_akrios.append(json.dumps(msg, sort_keys=True, indent=4))
             log.debug(f"client_read after input: {GameConnection.client_to_akrios}")
+        elif not inp:  # Is this an indication of EOF?
+            connection.state = 'disconnected'
+            break
 
 
 async def client_write(writer, connection):
     while True:
         if connection.uuid in PlayerConnection.akrios_to_client and PlayerConnection.akrios_to_client[connection.uuid]:
-            message = PlayerConnection.akrios_to_client[connection.uuid].pop(0)
-            writer.write(message)
+            writer.write(PlayerConnection.akrios_to_client[connection.uuid].pop(0))
             await writer.drain()
         else:
             await asyncio.sleep(0.0000001)
@@ -125,48 +130,39 @@ async def handle_client(*args):
     This is a generic handler.  By performing the if/else blocks we can handle both Telnet and SSH
     connections via the same handler.
 
-    This can probably be cleaner by checking the type of the positional arguments.  Investigate.
+    This can probably be cleaner by checking the type of the positional arguments.
+    Or perhaps break it into two handlers anyway.  Investigate this.
     """
     if len(args) == 1:
         conn_type = 'ssh'
         process = args[0]
         reader = process.stdin
         writer = process.stdout
-        # log.info(dir(process))
         addr, port = process.get_extra_info('peername')
     else:
         conn_type = 'telnet'
         process = None
         reader = args[0]
         writer = args[1]
-        # log.debug(f'Reader: {dir(reader)}')
-        # log.debug(f'Writer: {dir(writer)}')
         addr, port = writer.get_extra_info('peername')
 
     connection = PlayerConnection(addr, port, 'connected')
-    connection.add_client(connection)
+    connection.register_client(connection)
 
     writer.write(f'\r\nConnecting you to Akrios...\n\r ')
-
-    connection.connection_connected()
 
     asyncio.create_task(client_read(reader, connection))
     asyncio.create_task(client_write(writer, connection))
 
-    while True:
-        try:
+    try:
+        while connection.state == 'connected':
             await asyncio.sleep(0.0000001)
-        except Exception as err_:
-            log.warning(f'Exception in handle_client: {err_}')
-            break
+    finally:
 
-    connection.connection_disconnected()
-    connection.del_client(connection)
+        connection.unregister_client(connection)
 
-    if conn_type == 'ssh':
-        process.exit(0)
-    elif conn_type == 'telnet':
-        writer.close()
+        if conn_type == 'ssh':
+            process.exit(0)
 
 
 class MySSHServer(asyncssh.SSHServer):
@@ -184,7 +180,7 @@ class MySSHServer(asyncssh.SSHServer):
             log.info('SSH connection closed.')
 
     def begin_auth(self, username):
-        # If the user's password is the empty string, no auth is required
+        # If the user's password is an empty string, no auth is required
         return False
 
     def password_auth_supported(self):
@@ -211,12 +207,12 @@ class GameConnection(object):
         self.uuid = str(uuid4())
 
     @classmethod
-    def add_client(cls, client):
+    def register_client(cls, client):
         log.info(f'Adding client {client.uuid} to connections')
         cls.connections[client.uuid] = client
 
     @classmethod
-    def delete_client(cls, client):
+    def unregister_client(cls, client):
         if client.uuid in cls.connections:
             log.info(f'Deleting client {client.uuid} from connections')
             cls.connections.pop(client.uuid)
@@ -227,17 +223,20 @@ class GameConnection(object):
 async def ws_heartbeat(websocket_):
     while True:
         msg = {'event': 'heartbeat',
+               'tasks': len(asyncio.all_tasks()),
                'secret': FRONT_END}
         await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
         await asyncio.sleep(10)
 
 
-async def ws_read(websocket_):
+async def ws_read(websocket_, connection):
     last_heartbeat_received = time.time()
 
     while True:
         inp = await websocket_.recv()
-        if inp:
+        if not inp:  # EOF
+            connection.state = 'disconnected'
+        else:
             log.info(f'WS Received: {inp}')
             msg = json.loads(inp)
 
@@ -272,28 +271,41 @@ async def ws_write(websocket_):
 
 async def ws_handler(websocket_, path):
     connection = GameConnection('connected')
-    connection.add_client(connection)
+    connection.register_client(connection)
 
     log.info(f'Received websocket connection from Akrios.')
 
     asyncio.create_task(ws_heartbeat(websocket_))
-    asyncio.create_task(ws_read(websocket_))
+    asyncio.create_task(ws_read(websocket_, connection))
     asyncio.create_task(ws_write(websocket_))
 
-    while True:
-        try:
+    try:
+        while True:
             await asyncio.sleep(0.0000001)
-        except Exception as err_:
-            log.warning(f"Caught exception in main loop: {err_}")
-            break
+    finally:
 
-    connection.delete_client(connection)
+        connection.unregister_client(connection)
+        log.info(f'Closing websocket')
+        await websocket_.close()
 
-    log.info(f'Closing websocket')
-    await websocket_.close()
+
+async def shutdown(signal_, loop_):
+    log.info(f'Received exit signal {signal_.name}')
+
+    tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+    [task.cancel() for task in tasks]
+
+    log.info(f'Cancelling {len(tasks)} outstanding tasks')
+    await asyncio.gather(*tasks, return_exceptions=True)
+    loop_.stop()
+
 
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
+
+    signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
+    for s in signals:
+        loop.add_signal_handler(s, lambda s=s: asyncio.create_task(shutdown(s, loop)))
 
     telnet_port = 6969
     ssh_port = 7979
@@ -317,5 +329,5 @@ if __name__ == '__main__':
     except Exception as err:
         log.warning(f'Error in main loop: {err}')
 
-    for server in all_servers:
-        loop.run_until_complete(server.wait_closed())
+    log.info('Front end shut down.')
+    loop.close()
