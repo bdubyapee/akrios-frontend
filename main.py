@@ -13,7 +13,7 @@
     The file 'ssh_host_key' must exist with an SSH private key in it for server host key.
     The file 'ssh_host_key-cert.pub' may optionally be provided for an SSH host certificate.
     The file 'ssh_user_ca' must exist with a cert-authority entry of the certificate authority
-        which can sign valid client certificates.
+        which can sign valid client certificates
 
     https://www.digitalocean.com/community/tutorials/how-to-create-an-ssh-ca-to-validate-hosts-and-clients-with-ubuntu
 """

@@ -81,6 +81,10 @@
     <servers />
   </component>
   <component name="WindowStateProjectService">
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1576295940403">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1576295940403" />
     <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1575741375781">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -109,5 +113,9 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="698" y="195" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1575739232899" />
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1576295864776">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1576295864776" />
   </component>
 </project>
