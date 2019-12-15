@@ -29,9 +29,5 @@ src/keys.py
 data/log/*.log
 
 # Temp #
-akrios_ca
-akrios_ca.pub
-akrios_ca-cert.pub
-keys.py
 nohup.out
 

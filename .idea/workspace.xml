@@ -2,7 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8422f22f-cbea-42b5-9fa7-6f1037af79a1" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/akrios_ca" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/bwp.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/bwp.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/keys.py" beforeDir="false" afterPath="$PROJECT_DIR$/keys.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -22,7 +27,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../akriosmud" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager">
@@ -104,24 +109,47 @@
       <option name="project" value="LOCAL" />
       <updated>1576295990201</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Almost there">
+      <created>1576364719131</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1576364719131</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Almost there">
+      <created>1576364792968</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1576364792968</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Revert &quot;Delete keys.py&quot;&#10;&#10;This reverts commit ae7542e2">
+      <created>1576364836179</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1576364836179</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Round 2" />
     <MESSAGE value="Revert &quot;Delete keys.py&quot;&#10;&#10;This reverts commit 717f7108" />
     <MESSAGE value="Round 2. Again." />
-    <option name="LAST_COMMIT_MESSAGE" value="Round 2. Again." />
+    <MESSAGE value="Almost there" />
+    <MESSAGE value="Revert &quot;Delete keys.py&quot;&#10;&#10;This reverts commit ae7542e2" />
+    <option name="LAST_COMMIT_MESSAGE" value="Revert &quot;Delete keys.py&quot;&#10;&#10;This reverts commit ae7542e2" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1576295990147">
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1576364836109">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1576295990147" />
-    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1576352467251">
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1576364836109" />
+    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1576366361530">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1576352467251" />
+    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1576366361530" />
     <state x="975" y="475" key="Github.ShareDialog" timestamp="1575854309613">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -146,9 +174,9 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="698" y="195" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1575739232899" />
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1576295991321">
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1576364800575">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1576295991321" />
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1576364800575" />
   </component>
 </project>

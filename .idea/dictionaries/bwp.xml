@@ -5,6 +5,7 @@
       <w>akrios</w>
       <w>asctime</w>
       <w>asyncio</w>
+      <w>asyncssh</w>
       <w>coldboot</w>
       <w>coro</w>
       <w>eachmsg</w>
@@ -15,6 +16,7 @@
       <w>skiddo</w>
       <w>telnetlib</w>
       <w>websocket</w>
+      <w>websockets</w>
     </words>
   </dictionary>
 </component>
