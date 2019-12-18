@@ -14,6 +14,9 @@
     ! generate the file. Use a passphrase during ca generation, place it in keys.py.
     !
     ! ssh-keygen -f akrios_ca
+
+    Please note the use of asyncio.sleep(0) in various loops to simply return control to the event loop.
+    https://github.com/python/asyncio/issues/284
 """
 
 import asyncio
@@ -27,12 +30,11 @@ from uuid import uuid4
 import websockets
 
 from keys import passphrase as ca_phrase
-from keys import FRONT_END
+from keys import WS_SECRET
 
 logging.basicConfig(format='%(asctime)s: %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 log = logging.getLogger(__name__)
-#  "The logging module changed my life."      - Jubelo
 
 
 class PlayerConnection(object):
@@ -44,7 +46,7 @@ class PlayerConnection(object):
             connections(dict): uuid -> PlayerConnection instance
                key: Unique Client UUID
                value: an instance of PlayerConnection
-            akrios_to_client(dict): uuid -> list
+            game_to_client(dict): uuid -> list
                 key: Unique Client UUID
                 value: list of strings that are message outbound to that client from the game.
 
@@ -55,7 +57,7 @@ class PlayerConnection(object):
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
     connections = {}
-    akrios_to_client = {}
+    game_to_client = {}
 
     def __init__(self, addr, port, state=None):
         self.addr = addr
@@ -71,10 +73,10 @@ class PlayerConnection(object):
                    'addr': self.addr,
                    'port': self.port}
         msg = {'event': 'connection/connected',
-               'secret': FRONT_END,
+               'secret': WS_SECRET,
                'payload': payload}
 
-        GameConnection.client_to_akrios.append(json.dumps(msg, sort_keys=True, indent=4))
+        GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
     def notify_disconnected(self):
         """
@@ -84,56 +86,56 @@ class PlayerConnection(object):
                    'addr': self.addr,
                    'port': self.port}
         msg = {'event': 'connection/disconnected',
-               'secret': FRONT_END,
+               'secret': WS_SECRET,
                'payload': payload}
 
-        GameConnection.client_to_akrios.append(json.dumps(msg, sort_keys=True, indent=4))
+        GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
     @classmethod
-    def register_client(cls, client):
+    def register_client(cls, connection):
         """
             Upon a new client connection, we register it to the PlayerConnection Class.
         """
-        log.debug(f'Adding client {client.uuid} to connections')
+        log.debug(f'Adding client {connection.uuid} to connections')
 
-        cls.connections[client.uuid] = client
-        cls.akrios_to_client[client.uuid] = []
+        cls.connections[connection.uuid] = connection
+        cls.game_to_client[connection.uuid] = []
 
-        client.notify_connected()
+        connection.notify_connected()
 
     @classmethod
-    def unregister_client(cls, client):
+    def unregister_client(cls, connection):
         """
             Upon client disconnect/quit, we unregister it.
         """
-        if client.uuid in cls.connections:
-            log.debug(f'Deleting client {client.uuid} from connections')
-            cls.connections.pop(client.uuid)
-            client.notify_disconnected()
+        if connection.uuid in cls.connections:
+            log.debug(f'Deleting connection {connection.uuid} from connections')
+            cls.connections.pop(connection.uuid)
+            connection.notify_disconnected()
 
-            if client.uuid in cls.akrios_to_client:
-                log.debug(f'unregister_client : Deleting akrios messages found outbound to client')
-                cls.akrios_to_client.pop(client.uuid)
+            if connection.uuid in cls.game_to_client:
+                log.debug(f'unregister_connection : Deleting game messages found outbound to connection')
+                cls.game_to_client.pop(connection.uuid)
 
-            for index, eachmsg in enumerate(GameConnection.client_to_akrios):
-                if client.uuid in eachmsg:
-                    log.debug(f'unregister_client : Deleting client messages found inbound to Akrios')
-                    GameConnection.client_to_akrios.pop(index)
+            for index, eachmsg in enumerate(GameConnection.client_to_game):
+                if connection.uuid in eachmsg:
+                    log.debug(f'unregister_connection : Deleting connection messages found inbound to Akrios')
+                    GameConnection.client_to_game.pop(index)
         else:
-            log.warning(f'unregister_client : {client.uuid} not in connections!')
+            log.warning(f'unregister_connection : {connection.uuid} not in connections!')
 
 
 async def client_read(reader, connection):
     """
-        read coroutine utilized by the client handler.
+        Utilized by the client handler.
 
-        We want this coroutine to run "forever", so we begin with a while True
+        We want this coroutine to run while the client is connected, so we begin with a while loop
         We first await control back to the main loop until we have received some input (or an EOF)
             Mark the connection to disconnected and break out if a disconnect (EOF)
             else we handle the input. Client input packaged into a JSON payload and appended to the
             client_to_akrios buffer.
     """
-    while True:
+    while connection.state == 'connected':
         inp = await reader.readline()
         if not inp:  # This is an EOF.  Hard disconnect.
             connection.state = 'disconnected'
@@ -146,40 +148,40 @@ async def client_read(reader, connection):
                        'port': connection.port,
                        'msg': inp.strip()}
             msg = {'event': 'player/input',
-                   'secret': FRONT_END,
+                   'secret': WS_SECRET,
                    'payload': payload}
 
-            GameConnection.client_to_akrios.append(json.dumps(msg, sort_keys=True, indent=4))
+            GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
-            log.debug(f'client_read after input: {GameConnection.client_to_akrios}')
+            log.debug(f'client_read after input: {GameConnection.client_to_game}')
 
 
 async def client_write(writer, connection):
     """
-        write coroutine utilized by the client handler.
+        Utilized by the client handler.
 
-        We want this coroutine to run "forever", so we begin with a while True
+        We want this coroutine to run while the client is connected, so we begin with a while loop
         If the clients uuid is a key in the akrios_to_client dict, and if the value is not an empty list....
         then we have something to send to the client!
 
         We pop that message from the list and write it (to a client out buffer somewhere up the chain), we
         then await control back to the main loop while waiting for the client buffer to "drain" (send data).
 
-        If we have nothing to send to the client, we simply sleep for a short time so that we have yielded control
+        If we have nothing to send to the client, we simply sleep(0)so that we have yielded control
         back up to the main event loop.
     """
-    while True:
-        if connection.uuid in PlayerConnection.akrios_to_client and PlayerConnection.akrios_to_client[connection.uuid]:
-            writer.write(PlayerConnection.akrios_to_client[connection.uuid].pop(0))
+    while connection.state == 'connected':
+        if connection.uuid in PlayerConnection.game_to_client and PlayerConnection.game_to_client[connection.uuid]:
+            writer.write(PlayerConnection.game_to_client[connection.uuid].pop(0))
             await writer.drain()
         else:
-            await asyncio.sleep(0.0000001)
+            await asyncio.sleep(0)
 
 
 async def handle_client(*args):
     """
-    This is a generic handler/"shell" coroutine.  It is called on new connections of both
-    telnet and SSH.
+    This is a generic handler/"shell".  It is called on new connections of both
+    telnet and SSH clients.
 
     By performing the if/else blocks we can handle both Telnet and SSH
     connections via the same handler.
@@ -210,9 +212,8 @@ async def handle_client(*args):
 
     try:
         while connection.state == 'connected':
-            await asyncio.sleep(0.0000001)
+            await asyncio.sleep(0)
     finally:
-
         connection.unregister_client(connection)
 
         if conn_type == 'ssh':
@@ -236,7 +237,6 @@ class MySSHServer(asyncssh.SSHServer):
             log.info('SSH connection closed.')
 
     def begin_auth(self, username):
-        # If the user's password is an empty string, no auth is required
         return False
 
     def password_auth_supported(self):
@@ -255,7 +255,7 @@ class GameConnection(object):
             connections(dict): uuid -> GameConnection instance
                key: Unique game UUID
                value: an instance of GameConnection
-            client_to_akrios(dict): list
+            client_to_game(dict): list
                 A list of JSON strings that are message outbound to the game from clients.
 
         Instance variables:
@@ -264,65 +264,65 @@ class GameConnection(object):
     """
     connections = {}
 
-    client_to_akrios = []
+    client_to_game = []
 
     def __init__(self, state=None):
         self.state = state
         self.uuid = str(uuid4())
 
     @classmethod
-    def register_client(cls, client):
+    def register_client(cls, game_connection):
         """
             Upon a new game connection, we register it to the GameConnection Class.
         """
-        log.debug(f'Adding client {client.uuid} to connections')
-        cls.connections[client.uuid] = client
+        log.debug(f'Adding game {game_connection.uuid} to connections')
+        cls.connections[game_connection.uuid] = game_connection
 
     @classmethod
-    def unregister_client(cls, client):
+    def unregister_client(cls, game_connection):
         """
             Upon an existing game disconnecting, we unregister it.
         """
-        if client.uuid in cls.connections:
-            log.debug(f'Deleting client {client.uuid} from connections')
-            cls.connections.pop(client.uuid)
+        if game_connection.uuid in cls.connections:
+            log.debug(f'Deleting game {game_connection.uuid} from connections')
+            cls.connections.pop(game_connection.uuid)
         else:
-            log.warning(f'Failed to delete {client.uuid} from connections')
+            log.warning(f'Failed to delete {game_connection.uuid} from game connections')
 
 
-async def ws_heartbeat(websocket_):
+async def ws_heartbeat(websocket_, game_connection):
     """
-        Heartbeat coroutine utilized in the WebSocket (ws) handler.
+        Utilized in the WebSocket (ws) handler.
 
         Create a JSON heartbeat payload, await that to send, then await a 10 second sleep.
         This effectively sends a heartbeat to the game every 10 seconds.
     """
-    while True:
+    while game_connection.state == 'connected':
         msg = {'event': 'heartbeat',
                'tasks': len(asyncio.all_tasks()),
-               'secret': FRONT_END}
+               'secret': WS_SECRET}
 
         await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
         await asyncio.sleep(10)
 
 
-async def ws_read(websocket_, connection):
+async def ws_read(websocket_, game_connection):
     """
-        read coroutine utilized in the WebSocket (ws) handler.
+        Utilized in the WebSocket (ws) handler.
 
-        For fun we track time between heartbeat acknowledgements from the game.
+        We track time between heartbeat acknowledgements from the game.
 
-        We want this coroutine to run "forever", so we begin with a while True
+        We want this coroutine to run while the game is connected, so we begin with a while loop
         We first await control back to the main loop until we have received some input (or an EOF)
             Mark the connection to disconnected and break out if a disconnect (EOF)
-            else we handle the input (Event of some kind?  Heartbeat?  Message to client?)
+            else we handle the input.
     """
     last_heartbeat_received = time.time()
 
-    while True:
+    while game_connection.state == 'connected':
         inp = await websocket_.recv()
         if not inp:  # This is an EOF.   Hard disconnect.
-            connection.state = 'disconnected'
+            game_connection.state = 'disconnected'
         else:
             log.debug(f'WS Received: {inp}')
             msg = json.loads(inp)
@@ -330,7 +330,7 @@ async def ws_read(websocket_, connection):
             if 'secret' not in msg.keys():
                 log.warning('Breaking out of ws_handler as no secret in msg')
                 break
-            if msg['secret'] != FRONT_END:
+            if msg['secret'] != WS_SECRET:
                 log.warning('Breaking out of ws_handler as secret in msg is not correct.')
                 break
 
@@ -338,57 +338,57 @@ async def ws_read(websocket_, connection):
                 if msg['payload']['uuid'] in PlayerConnection.connections:
                     log.debug(f'Message Received confirmation:\n')
                     log.debug(f'{msg}')
-                    PlayerConnection.akrios_to_client[msg['payload']['uuid']].append(msg['payload']['message'])
+                    PlayerConnection.game_to_client[msg['payload']['uuid']].append(msg['payload']['message'])
 
             if msg['event'] == 'heartbeat':
                 delta = time.time() - last_heartbeat_received
                 last_heartbeat_received = time.time()
-                log.debug(f'Received heartbeat response from Akrios. Last Response {delta:.6} seconds ago.')
+                log.debug(f'Received heartbeat response from game. Last Response {delta:.6} seconds ago.')
 
 
-async def ws_write(websocket_):
+async def ws_write(websocket_, game_connection):
     """
-        write coroutine utilized in the WebSocket (ws) handler.
+        Utilized in the WebSocket (ws) handler.
 
-        We want this coroutine to run "forever", so we begin with a while True
-        If the client_to_akrios buffer has messages, pop them off the list and send them!
-        If no messages, we "sleep" for a very short period of time as every coroutine needs to await control
-            back to the main event loop in some way.
+        We want this coroutine to run while the game is connected, so we begin with a while loop
+        If the client_to_game buffer has messages, pop them off the list and send them!
+        If no messages, we sleep(0) as every coroutine needs to await control back to the main event loop in some way.
     """
-    while True:
-        if GameConnection.client_to_akrios:
-            message = GameConnection.client_to_akrios.pop(0)
-            log.debug(f'Sending to Akrios : {message}')
+    while game_connection.state == 'connected':
+        if GameConnection.client_to_game:
+            message = GameConnection.client_to_game.pop(0)
+            log.debug(f'ws_write sending to game : {message}')
             await websocket_.send(message)
         else:
-            await asyncio.sleep(0.0000001)
+            await asyncio.sleep(0)
 
 
 async def ws_handler(websocket_, path):
     """
-        handler coroutine utilized for newly connected websocket clients.
+        This is a generic websocket handler/"shell".  It is called on new connections of websocket
+        clients, which would be the game connecting to the front end.
 
         Start by taking our new connection, instantiate a GameConnection and register it.
         Create our three coroutine tasks associated with _this connection_.
 
-        We want this handler coroutine to run "forever", or until a quit/disconnect.
+        We want this handler coroutine to run while the game is connected , or until a quit/disconnect.
         Wrap a while connected in a try/finally.  As a coroutine we must await control back to the main
-        loop at some point so we sleep for a short time, a quit or disconnect will break out so we can clean up.
+        loop at some point so we sleep(0) for that, a quit or disconnect will break out so we can clean up.
     """
-    connection = GameConnection('connected')
-    connection.register_client(connection)
+    game_connection = GameConnection('connected')
+    game_connection.register_client(game_connection)
 
-    log.info(f'Received websocket connection from Akrios.')
+    log.info(f'Received websocket connection from game.')
 
-    asyncio.create_task(ws_heartbeat(websocket_))
-    asyncio.create_task(ws_read(websocket_, connection))
-    asyncio.create_task(ws_write(websocket_))
+    asyncio.create_task(ws_heartbeat(websocket_, game_connection))
+    asyncio.create_task(ws_read(websocket_, game_connection))
+    asyncio.create_task(ws_write(websocket_, game_connection))
 
     try:
-        while connection.state == 'connected':
-            await asyncio.sleep(0.0000001)
+        while game_connection.state == 'connected':
+            await asyncio.sleep(0)
     finally:
-        connection.unregister_client(connection)
+        game_connection.unregister_client(game_connection)
         log.info(f'Closing websocket')
         await websocket_.close()
 
@@ -398,7 +398,7 @@ async def shutdown(signal_, loop_):
         shutdown coroutine utilized for cleanup on receipt of certain signals.
         Created and added as a handler to the loop in __main__
 
-        Courtesy of the great "talks" by Lynn Root and her Mayhem Mandrill
+        Courtesy of the great "talks" by Lynn Root
         https://www.roguelynn.com/talks/
     """
     log.warning(f'Received exit signal {signal_.name}')
@@ -414,11 +414,9 @@ async def shutdown(signal_, loop_):
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
 
-    # Signals catching discovered on Lynn Roots site.  Great asyncio information.
-    # https://www.roguelynn.com/talks/
     signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
-    for s in signals:
-        loop.add_signal_handler(s, lambda s=s: asyncio.create_task(shutdown(s, loop)))
+    for sig in signals:
+        loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown(s, loop)))
 
     telnet_port = 6969
     ssh_port = 7979
@@ -434,7 +432,7 @@ if __name__ == '__main__':
                    websockets.serve(ws_handler, 'localhost', ws_port)
                    ]
 
-    log.info('Launching Akrios front end loop:\n\r')
+    log.info('Launching game front end loop:\n\r')
 
     for each_server in all_servers:
         loop.run_until_complete(each_server)

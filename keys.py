@@ -10,5 +10,5 @@
     passphrase : a passphrase used to generate the server certificate
 """
 
-FRONT_END = "88860209-729e-4c9a-8337-ba1095c83b07"
+WS_SECRET = "88860209-729e-4c9a-8337-ba1095c83b07"
 passphrase = "Phrase1"
