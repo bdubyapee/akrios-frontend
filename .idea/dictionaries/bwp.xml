@@ -15,6 +15,7 @@
       <w>peername</w>
       <w>skiddo</w>
       <w>telnetlib</w>
+      <w>telnetssh</w>
       <w>websocket</w>
       <w>websockets</w>
     </words>
