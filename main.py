@@ -65,13 +65,16 @@ if __name__ == '__main__':
     log.info(f'Creating Websocket Listener on port {ws_port}')
     all_servers = [telnetlib3.create_server(port=telnet_port,
                                             shell=client_telnetssh.handle_client,
-                                            connect_maxwait=0.5),
+                                            connect_maxwait=0.5,
+                                            timeout=3600),
                    asyncssh.create_server(client_telnetssh.MySSHServer,
                                           '',
                                           ssh_port,
                                           server_host_keys=['akrios_ca'],
                                           passphrase=ca_phrase,
-                                          process_factory=client_telnetssh.handle_client),
+                                          process_factory=client_telnetssh.handle_client,
+                                          keepalive_interval=10,
+                                          login_timeout=3600),
                    websockets.serve(server_ws.ws_handler,
                                     'localhost',
                                     ws_port)

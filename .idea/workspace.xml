@@ -3,9 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8422f22f-cbea-42b5-9fa7-6f1037af79a1" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client_telnetssh.py" beforeDir="false" afterPath="$PROJECT_DIR$/client_telnetssh.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server_ws.py" beforeDir="false" afterPath="$PROJECT_DIR$/server_ws.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -158,7 +156,14 @@
       <option name="project" value="LOCAL" />
       <updated>1576716924684</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Working on import loop.">
+      <created>1576882525065</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1576882525065</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -171,17 +176,18 @@
     <MESSAGE value="Significant update. Works correctly now, lots of doc strings and cleanup." />
     <MESSAGE value="Changed up some naming to be clearer.  Identified asyncio.sleep(0) as official &quot;yield nothing&quot; back to event loop." />
     <MESSAGE value="Restructuring file layout." />
-    <option name="LAST_COMMIT_MESSAGE" value="Restructuring file layout." />
+    <MESSAGE value="Working on import loop." />
+    <option name="LAST_COMMIT_MESSAGE" value="Working on import loop." />
   </component>
   <component name="WindowStateProjectService">
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1576716924597">
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1576882524850">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1576716924597" />
-    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1576370904634">
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1576882524850" />
+    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1576882556650">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1576370904634" />
+    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1576882556650" />
     <state x="975" y="475" key="Github.ShareDialog" timestamp="1575854309613">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -206,9 +212,9 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="698" y="195" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1575739232899" />
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1576716927218">
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1576882526847">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1576716927217" />
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1576882526847" />
   </component>
 </project>
