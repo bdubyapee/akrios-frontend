@@ -52,8 +52,6 @@ async def shutdown(signal_, loop_):
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
 
-    to_game_queue = []
-
     signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
     for sig in signals:
         loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown(s, loop)))

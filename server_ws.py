@@ -23,7 +23,7 @@ from uuid import uuid4
 # Third Party
 
 # Project
-from client_telnetssh import PlayerConnection
+import client_telnetssh
 from keys import WS_SECRET
 
 log = logging.getLogger(__name__)
@@ -48,6 +48,7 @@ class GameConnection(object):
             self.uuid is a str(uuid.uuid4()) used for unique game connection session tracking
     """
     connections = {}
+    client_to_game = []
 
     def __init__(self, state=None):
         self.state = state
@@ -115,9 +116,9 @@ async def ws_read(websocket_, game_connection):
                 break
 
             if msg['event'] == 'player/output':
-                if msg['payload']['uuid'] in PlayerConnection.connections:
+                if msg['payload']['uuid'] in client_telnetssh.PlayerConnection.connections:
                     log.debug(f'Message Received confirmation:\n{msg}')
-                    PlayerConnection.game_to_client[msg['payload']['uuid']].append(msg['payload']['message'])
+                    client_telnetssh.PlayerConnection.game_to_client[msg['payload']['uuid']].append(msg['payload']['message'])
 
             if msg['event'] == 'heartbeat':
                 delta = time.time() - last_heartbeat_received
@@ -134,8 +135,8 @@ async def ws_write(websocket_, game_connection):
         If no messages, we sleep(0) as every coroutine needs to await control back to the main event loop in some way.
     """
     while game_connection.state == 'connected':
-        if to_game_queue:
-            message = to_game_queue.pop(0)
+        if GameConnection.client_to_game:
+            message = GameConnection.client_to_game.pop(0)
             log.debug(f'ws_write sending to game : {message}')
             await websocket_.send(message)
         else:

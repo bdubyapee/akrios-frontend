@@ -28,11 +28,10 @@ from uuid import uuid4
 import asyncssh
 
 # Project
+import server_ws
 from keys import WS_SECRET
 
 log = logging.getLogger(__name__)
-
-global to_game_queue
 
 
 class PlayerConnection(object):
@@ -75,7 +74,7 @@ class PlayerConnection(object):
                'secret': WS_SECRET,
                'payload': payload}
 
-        to_game_queue.append(json.dumps(msg, sort_keys=True, indent=4))
+        server_ws.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
     def notify_disconnected(self):
         """
@@ -89,7 +88,7 @@ class PlayerConnection(object):
                'secret': WS_SECRET,
                'payload': payload}
 
-        to_game_queue.append(json.dumps(msg, sort_keys=True, indent=4))
+        server_ws.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
     @classmethod
     def register_client(cls, connection):
@@ -146,7 +145,7 @@ async def client_read(reader, connection):
                    'secret': WS_SECRET,
                    'payload': payload}
 
-            to_game_queue.append(json.dumps(msg, sort_keys=True, indent=4))
+            server_ws.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
 
 async def client_write(writer, connection):
