@@ -153,7 +153,7 @@ async def client_write(writer, connection):
         Utilized by the client handler.
 
         We want this coroutine to run while the client is connected, so we begin with a while loop
-        If the clients uuid is a key in the akrios_to_client dict, and if the value is not an empty list....
+        If the clients uuid is a key in the game_to_client dict, and if the value is not an empty list....
         then we have something to send to the client!
 
         We pop that message from the list and write it (to a client out buffer somewhere up the chain), we

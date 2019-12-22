@@ -28,8 +28,6 @@ from keys import WS_SECRET
 
 log = logging.getLogger(__name__)
 
-global to_game_queue
-
 
 class GameConnection(object):
     """
@@ -108,7 +106,7 @@ async def ws_read(websocket_, game_connection):
         if not inp:  # This is an EOF.   Hard disconnect.
             game_connection.state = 'disconnected'
         else:
-            log.debug(f'WS Received: {inp}')
+            log.debug(f'Websocket Received: {inp}')
             msg = json.loads(inp)
 
             if 'secret' not in msg.keys() or msg['secret'] != WS_SECRET:
@@ -116,9 +114,11 @@ async def ws_read(websocket_, game_connection):
                 break
 
             if msg['event'] == 'player/output':
-                if msg['payload']['uuid'] in client_telnetssh.PlayerConnection.connections:
+                session = msg['payload']['uuid']
+                message = msg['payload']['message']
+                if session in client_telnetssh.PlayerConnection.connections:
                     log.debug(f'Message Received confirmation:\n{msg}')
-                    client_telnetssh.PlayerConnection.game_to_client[msg['payload']['uuid']].append(msg['payload']['message'])
+                    client_telnetssh.PlayerConnection.game_to_client[session].append(message)
 
             if msg['event'] == 'heartbeat':
                 delta = time.time() - last_heartbeat_received
