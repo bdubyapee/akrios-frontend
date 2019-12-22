@@ -120,6 +120,12 @@ async def ws_read(websocket_, game_connection):
                     log.debug(f'Message Received confirmation:\n{msg}')
                     client_telnetssh.PlayerConnection.game_to_client[session].append(message)
 
+            if msg['event'] == 'player/sign-out':
+                session = msg['payload']['uuid']
+                if session in client_telnetssh.PlayerConnection.connections:
+                    log.debug(f'Logging out {session}')
+                    client_telnetssh.PlayerConnection.connections[session].state = 'disconnected'
+
             if msg['event'] == 'heartbeat':
                 delta = time.time() - last_heartbeat_received
                 last_heartbeat_received = time.time()
