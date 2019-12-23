@@ -146,7 +146,6 @@ async def client_read(reader, connection):
                    'payload': payload}
 
             server_ws.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
-    reader.close()
 
 
 async def client_write(writer, connection):
@@ -169,7 +168,6 @@ async def client_write(writer, connection):
             await writer.drain()
         else:
             await asyncio.sleep(0)
-    writer.close()
 
 
 async def handle_client(*args):
