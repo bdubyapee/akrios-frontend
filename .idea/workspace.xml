@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="8422f22f-cbea-42b5-9fa7-6f1037af79a1" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server_ws.py" beforeDir="false" afterPath="$PROJECT_DIR$/server_ws.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client_telnetssh.py" beforeDir="false" afterPath="$PROJECT_DIR$/client_telnetssh.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -177,7 +177,14 @@
       <option name="project" value="LOCAL" />
       <updated>1577053803246</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="FE &lt;-&gt; game player logouts">
+      <created>1577057696391</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1577057696391</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -191,13 +198,14 @@
     <MESSAGE value="Changed up some naming to be clearer.  Identified asyncio.sleep(0) as official &quot;yield nothing&quot; back to event loop." />
     <MESSAGE value="Restructuring file layout." />
     <MESSAGE value="Working on import loop." />
-    <option name="LAST_COMMIT_MESSAGE" value="Working on import loop." />
+    <MESSAGE value="FE &lt;-&gt; game player logouts" />
+    <option name="LAST_COMMIT_MESSAGE" value="FE &lt;-&gt; game player logouts" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1577053803150">
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1577057696187">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1577053803150" />
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1577057696187" />
     <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1576882556650">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -226,9 +234,9 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="698" y="195" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1575739232899" />
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1577053804472">
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1577057698406">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1577053804472" />
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1577057698406" />
   </component>
 </project>
