@@ -48,8 +48,9 @@ class GameConnection(object):
     connections = {}
     client_to_game = []
 
-    def __init__(self, state=None):
-        self.state = state
+    def __init__(self):
+        self.state = {'connected': True}
+        self.tasks = []
         self.uuid = str(uuid4())
 
     @classmethod
@@ -79,7 +80,7 @@ async def ws_heartbeat(websocket_, game_connection):
         Create a JSON heartbeat payload, await that to send, then await a 10 second sleep.
         This effectively sends a heartbeat to the game engine every 10 seconds.
     """
-    while game_connection.state == 'connected':
+    while game_connection.state['connected']:
         msg = {'event': 'heartbeat',
                'tasks': len(asyncio.all_tasks()),
                'secret': WS_SECRET}
@@ -101,10 +102,10 @@ async def ws_read(websocket_, game_connection):
     """
     last_heartbeat_received = time.time()
 
-    while game_connection.state == 'connected':
+    while game_connection.state['connected']:
         inp = await websocket_.recv()
         if not inp:  # This is an EOF.   Hard disconnect.
-            game_connection.state = 'disconnected'
+            game_connection.state['connected'] = False
         else:
             log.debug(f'Websocket Received: {inp}')
             msg = json.loads(inp)
@@ -120,15 +121,19 @@ async def ws_read(websocket_, game_connection):
                     log.debug(f'Message Received confirmation:\n{msg}')
                     client_telnetssh.PlayerConnection.game_to_client[session].append(message)
 
-            if msg['event'] == 'players/sign-out':
+            if msg['event'] == 'players/sign-in':
+                player = msg['payload']['name']
                 session = msg['payload']['uuid']
                 if session in client_telnetssh.PlayerConnection.connections:
-                    log.info(f'Logging out {session}')
-                    for session, obj in client_telnetssh.PlayerConnection.connections.items():
-                        log.info(f'{session} : {obj.state}')
-                    client_telnetssh.PlayerConnection.connections[session].state = 'disconnected'
-                    for session, obj in client_telnetssh.PlayerConnection.connections.items():
-                        log.info(f'{session} : {obj.state}')
+                    log.debug(f'players/sign-in received for {player}@{session}')
+                    client_telnetssh.PlayerConnection.connections[session].name = player
+
+            if msg['event'] == 'players/sign-out':
+                player = msg['payload']['name']
+                session = msg['payload']['uuid']
+                if session in client_telnetssh.PlayerConnection.connections:
+                    log.debug(f'players/sign-out received for {player}@{session}')
+                    client_telnetssh.PlayerConnection.connections[session].state['connected'] = False
 
             if msg['event'] == 'heartbeat':
                 delta = time.time() - last_heartbeat_received
@@ -144,7 +149,7 @@ async def ws_write(websocket_, game_connection):
         If the client_to_game buffer has messages, pop them off the list and send them!
         If no messages, we sleep(0) as every coroutine needs to await control back to the main event loop in some way.
     """
-    while game_connection.state == 'connected':
+    while game_connection.state['connected']:
         if GameConnection.client_to_game:
             message = GameConnection.client_to_game.pop(0)
             log.debug(f'ws_write sending to game : {message}')
@@ -165,19 +170,32 @@ async def ws_handler(websocket_, path):
         Wrap a while connected in a try/finally.  As a coroutine we must await control back to the main
         loop at some point so we sleep(0) for that, a quit or disconnect will break out so we can clean up.
     """
-    game_connection = GameConnection('connected')
+    game_connection = GameConnection()
     game_connection.register_client(game_connection)
 
     log.info(f'Received websocket connection from game.')
 
-    asyncio.create_task(ws_heartbeat(websocket_, game_connection))
-    asyncio.create_task(ws_read(websocket_, game_connection))
-    asyncio.create_task(ws_write(websocket_, game_connection))
+    task_ws_hb = asyncio.create_task(ws_heartbeat(websocket_, game_connection), name=f'WS: {game_connection.uuid} hb')
+    task_ws_read = asyncio.create_task(ws_read(websocket_, game_connection), name=f'WS: {game_connection.uuid} read')
+    task_ws_write = asyncio.create_task(ws_write(websocket_, game_connection), name=f'WS: {game_connection.uuid} write')
+    task_ws_handler = asyncio.current_task()
+    task_ws_handler.set_name(f'WS: {game_connection.uuid} handler')
+
+    game_connection.tasks = [task_ws_hb, task_ws_read, task_ws_write, task_ws_handler]
 
     try:
-        while game_connection.state == 'connected':
+        while game_connection.state['connected']:
             await asyncio.sleep(0)
     finally:
+        tasks = [t for t in game_connection.tasks if t is not asyncio.current_task() and not t.cancelled()]
+
+        for each_task in tasks:
+            log.info(f'Canceling task in ws_handler.  Task name: {each_task.get_name()}')
+            each_task.cancel()
+
+        await asyncio.gather(*tasks, return_exceptions=True)
+
         game_connection.unregister_client(game_connection)
         log.info(f'Closing websocket')
+
         await websocket_.close()

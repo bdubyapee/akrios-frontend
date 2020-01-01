@@ -51,15 +51,19 @@ class PlayerConnection(object):
             self.addr is the IP address portion of the client
             self.port is the port portion of the client
             self.state is the current state of the client connection
+            self.tasks is a set of the tasks associated with this connection.
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
     connections = {}
     game_to_client = {}
 
-    def __init__(self, addr, port, state=None):
+    def __init__(self, addr, port):
         self.addr = addr
         self.port = port
-        self.state = state
+        self.state = {'connected': True,
+                      'logged in': False}
+        self.name = ''
+        self.tasks = []
         self.uuid = str(uuid4())
 
     def notify_connected(self):
@@ -115,6 +119,7 @@ class PlayerConnection(object):
             if connection.uuid in cls.game_to_client:
                 log.debug(f'unregister_connection : Deleting game messages found outbound to connection')
                 cls.game_to_client.pop(connection.uuid)
+
         else:
             log.warning(f'unregister_connection : {connection.uuid} not in connections!')
 
@@ -129,10 +134,10 @@ async def client_read(reader, connection):
             else we handle the input. Client input packaged into a JSON payload and appended to the
             client_to_akrios buffer.
     """
-    while connection.state == 'connected':
+    while connection.state['connected']:
         inp = await reader.readline()
         if not inp:  # This is an EOF.  Hard disconnect.
-            connection.state = 'disconnected'
+            connection.state['connected'] = False
             break
         else:
             log.debug(f'Received Input of: {inp}')
@@ -162,7 +167,7 @@ async def client_write(writer, connection):
         If we have nothing to send to the client, we simply sleep(0) so that we have yielded control
         back up to the main event loop.
     """
-    while connection.state == 'connected':
+    while connection.state['connected']:
         if connection.uuid in PlayerConnection.game_to_client and PlayerConnection.game_to_client[connection.uuid]:
             writer.write(PlayerConnection.game_to_client[connection.uuid].pop(0))
             await writer.drain()
@@ -181,9 +186,11 @@ async def handle_client(*args):
     This can probably be cleaner by checking the type of the positional arguments.
     Or perhaps break it into two handlers anyway.  Investigate this.
     """
+    log.info(f'*args to handle_client: {dir(args)}')
     if len(args) == 1:
         conn_type = 'ssh'
         process = args[0]
+        log.info(f'SSH details are: {dir(process)}')
         reader = process.stdin
         writer = process.stdout
         addr, port = process.get_extra_info('peername')
@@ -192,24 +199,47 @@ async def handle_client(*args):
         process = None
         reader = args[0]
         writer = args[1]
+        log.info(f'Reader details are: {dir(reader)}')
+        log.info(f'Writer details are: {dir(writer)}')
         addr, port = writer.get_extra_info('peername')
 
-    connection = PlayerConnection(addr, port, 'connected')
+    connection = PlayerConnection(addr, port)
     connection.register_client(connection)
 
     writer.write(f'\r\nConnecting you to Akrios...\n\r ')
 
-    asyncio.create_task(client_read(reader, connection))
-    asyncio.create_task(client_write(writer, connection))
+    read_task = asyncio.create_task(client_read(reader, connection), name=f'{connection.uuid} read')
+    write_task = asyncio.create_task(client_write(writer, connection), name=f'{connection.uuid} write')
+    handler_task = asyncio.current_task()
+    handler_task.set_name(f'{connection.uuid} handler')
+
+    connection.tasks = [read_task, write_task, handler_task]
 
     try:
-        while connection.state == 'connected':
+        while connection.state['connected']:
             await asyncio.sleep(0)
     finally:
+        log.info(f'In finally block of handle_client with {connection.uuid}.')
         connection.unregister_client(connection)
 
         if conn_type == 'ssh':
+            process.close()
             process.exit(0)
+        elif conn_type == 'telnet':
+            await writer.write_eof()
+            await writer.close()
+
+        tasks = [t for t in connection.tasks if t is not asyncio.current_task() and not t.cancelled()]
+
+        for each_task in tasks:
+            log.info(f'Canceling task in handle_client.  Task name: {each_task.get_name()}')
+            each_task.cancel()
+
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+
+
+        asyncio.current_task().cancel()
 
 
 class MySSHServer(asyncssh.SSHServer):
