@@ -186,11 +186,10 @@ async def handle_client(*args):
     This can probably be cleaner by checking the type of the positional arguments.
     Or perhaps break it into two handlers anyway.  Investigate this.
     """
-    log.info(f'*args to handle_client: {dir(args)}')
     if len(args) == 1:
         conn_type = 'ssh'
         process = args[0]
-        log.info(f'SSH details are: {dir(process)}')
+        log.debug(f'SSH details are: {dir(process)}')
         reader = process.stdin
         writer = process.stdout
         addr, port = process.get_extra_info('peername')
@@ -199,8 +198,8 @@ async def handle_client(*args):
         process = None
         reader = args[0]
         writer = args[1]
-        log.info(f'Reader details are: {dir(reader)}')
-        log.info(f'Writer details are: {dir(writer)}')
+        log.debug(f'Reader details are: {dir(reader)}')
+        log.debug(f'Writer details are: {dir(writer)}')
         addr, port = writer.get_extra_info('peername')
 
     connection = PlayerConnection(addr, port)
@@ -208,38 +207,23 @@ async def handle_client(*args):
 
     writer.write(f'\r\nConnecting you to Akrios...\n\r ')
 
-    read_task = asyncio.create_task(client_read(reader, connection), name=f'{connection.uuid} read')
-    write_task = asyncio.create_task(client_write(writer, connection), name=f'{connection.uuid} write')
+    asyncio.create_task(client_read(reader, connection), name=f'{connection.uuid} read')
+    asyncio.create_task(client_write(writer, connection), name=f'{connection.uuid} write')
     handler_task = asyncio.current_task()
     handler_task.set_name(f'{connection.uuid} handler')
-
-    connection.tasks = [read_task, write_task, handler_task]
 
     try:
         while connection.state['connected']:
             await asyncio.sleep(0)
     finally:
-        log.info(f'In finally block of handle_client with {connection.uuid}.')
         connection.unregister_client(connection)
 
         if conn_type == 'ssh':
             process.close()
             process.exit(0)
         elif conn_type == 'telnet':
-            await writer.write_eof()
-            await writer.close()
-
-        tasks = [t for t in connection.tasks if t is not asyncio.current_task() and not t.cancelled()]
-
-        for each_task in tasks:
-            log.info(f'Canceling task in handle_client.  Task name: {each_task.get_name()}')
-            each_task.cancel()
-
-        await asyncio.gather(*tasks, return_exceptions=True)
-
-
-
-        asyncio.current_task().cancel()
+            writer.write_eof()
+            writer.close()
 
 
 class MySSHServer(asyncssh.SSHServer):

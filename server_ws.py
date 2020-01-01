@@ -175,26 +175,16 @@ async def ws_handler(websocket_, path):
 
     log.info(f'Received websocket connection from game.')
 
-    task_ws_hb = asyncio.create_task(ws_heartbeat(websocket_, game_connection), name=f'WS: {game_connection.uuid} hb')
-    task_ws_read = asyncio.create_task(ws_read(websocket_, game_connection), name=f'WS: {game_connection.uuid} read')
-    task_ws_write = asyncio.create_task(ws_write(websocket_, game_connection), name=f'WS: {game_connection.uuid} write')
+    asyncio.create_task(ws_heartbeat(websocket_, game_connection), name=f'WS: {game_connection.uuid} hb')
+    asyncio.create_task(ws_read(websocket_, game_connection), name=f'WS: {game_connection.uuid} read')
+    asyncio.create_task(ws_write(websocket_, game_connection), name=f'WS: {game_connection.uuid} write')
     task_ws_handler = asyncio.current_task()
     task_ws_handler.set_name(f'WS: {game_connection.uuid} handler')
-
-    game_connection.tasks = [task_ws_hb, task_ws_read, task_ws_write, task_ws_handler]
 
     try:
         while game_connection.state['connected']:
             await asyncio.sleep(0)
     finally:
-        tasks = [t for t in game_connection.tasks if t is not asyncio.current_task() and not t.cancelled()]
-
-        for each_task in tasks:
-            log.info(f'Canceling task in ws_handler.  Task name: {each_task.get_name()}')
-            each_task.cancel()
-
-        await asyncio.gather(*tasks, return_exceptions=True)
-
         game_connection.unregister_client(game_connection)
         log.info(f'Closing websocket')
 
