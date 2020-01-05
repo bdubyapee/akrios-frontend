@@ -17,6 +17,7 @@
 import asyncio
 import logging
 import json
+import os
 import time
 from uuid import uuid4
 
@@ -51,6 +52,8 @@ class GameConnection(object):
     def __init__(self):
         self.state = {'connected': True}
         self.uuid = str(uuid4())
+        if GameConnection.connections:
+            GameConnection.connections = {}
 
     @classmethod
     def register_client(cls, game_connection):
@@ -88,6 +91,27 @@ async def ws_heartbeat(websocket_, game_connection):
         await asyncio.sleep(10)
 
 
+async def softboot_game(wait_time):
+    """
+        Utilized in the WebSocket (ws) reader.
+
+        The game has notified that it will shutdown.  We take the wait_time, sleep that time and then
+        launch the game.
+    """
+    await asyncio.sleep(wait_time)
+    os.system("python3.8 /home/bwp/PycharmProjects/akriosmud/src/akrios.py &")
+
+
+async def softboot_connection_list(websocket_):
+    if clients.PlayerConnection.connections:
+        payload = {'players': clients.PlayerConnection.connections}
+        msg = {'event': 'game/load_players',
+               'secret': WS_SECRET,
+               'payload': payload}
+
+        await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
+
+
 async def ws_read(websocket_, game_connection):
     """
         Utilized in the WebSocket handler: ws_handler
@@ -121,6 +145,11 @@ async def ws_read(websocket_, game_connection):
                 log.debug(f'Message Received confirmation:\n{msg}')
                 clients.PlayerConnection.game_to_client[session].append(message)
 
+        if msg['event'] == 'heartbeat':
+            delta = time.time() - last_heartbeat_received
+            last_heartbeat_received = time.time()
+            log.debug(f'Received heartbeat response from game. Last Response {delta:.6} seconds ago.')
+
         if msg['event'] == 'players/sign-in':
             player = msg['payload']['name']
             session = msg['payload']['uuid']
@@ -135,10 +164,8 @@ async def ws_read(websocket_, game_connection):
                 log.debug(f'players/sign-out received for {player}@{session}')
                 clients.PlayerConnection.connections[session].state['connected'] = False
 
-        if msg['event'] == 'heartbeat':
-            delta = time.time() - last_heartbeat_received
-            last_heartbeat_received = time.time()
-            log.debug(f'Received heartbeat response from game. Last Response {delta:.6} seconds ago.')
+        if msg['event'] == 'game/softboot':
+            await softboot_game(msg['payload']['wait_time'])
 
 
 async def ws_write(websocket_, game_connection):
@@ -180,6 +207,9 @@ async def ws_handler(websocket_, path):
     asyncio.create_task(ws_write(websocket_, game_connection), name=f'WS: {game_connection.uuid} write')
     task_ws_handler = asyncio.current_task()
     task_ws_handler.set_name(f'WS: {game_connection.uuid} handler')
+
+    if clients.PlayerConnection.connections:
+        await softboot_connection_list(websocket_)
 
     try:
         while game_connection.state['connected']:
