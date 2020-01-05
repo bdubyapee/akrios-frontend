@@ -98,14 +98,16 @@ async def softboot_game(wait_time):
         The game has notified that it will shutdown.  We take the wait_time, sleep that time and then
         launch the game.
     """
+    log.info('softboot_game before sleep')
     await asyncio.sleep(wait_time)
+    log.info('softboot_game after sleep')
     os.system("python3.8 /home/bwp/PycharmProjects/akriosmud/src/akrios.py &")
 
 
 async def softboot_connection_list(websocket_):
     if clients.PlayerConnection.connections:
         sessions = dict()
-        for k, v in clients.PlayerConnection.connections:
+        for k, v in clients.PlayerConnection.connections.items():
             sessions[k] = [v.name, v.addr, v.port]
         payload = {'players': sessions}
         msg = {'event': 'game/load_players',
@@ -168,6 +170,7 @@ async def ws_read(websocket_, game_connection):
                 clients.PlayerConnection.connections[session].state['connected'] = False
 
         if msg['event'] == 'game/softboot':
+            log.info('Received game/softboot event in servers receiver.')
             await softboot_game(msg['payload']['wait_time'])
 
 
