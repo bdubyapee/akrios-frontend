@@ -71,11 +71,6 @@ if __name__ == '__main__':
     ssh_port = 7979
     ws_port = 8989
 
-    # Set up our SSL context for Secure Telnet
-    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-    ssl_context.check_hostname = False
-    ssl_context.load_cert_chain('akrios.crt', 'akrios.key')
-
     log.info(f'Creating Telnet Listener on port {telnet_port}')
     log.info(f'Creating SSH Listener on port {ssh_port}')
     log.info(f'Creating Websocket Listener on port {ws_port}')
