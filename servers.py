@@ -104,7 +104,10 @@ async def softboot_game(wait_time):
 
 async def softboot_connection_list(websocket_):
     if clients.PlayerConnection.connections:
-        payload = {'players': clients.PlayerConnection.connections}
+        sessions = dict()
+        for k, v in clients.PlayerConnection.connections:
+            sessions[k] = [v.name, v.addr, v.port]
+        payload = {'players': sessions}
         msg = {'event': 'game/load_players',
                'secret': WS_SECRET,
                'payload': payload}
