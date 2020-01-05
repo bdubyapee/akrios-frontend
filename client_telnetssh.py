@@ -9,11 +9,6 @@
     Housing the Class(es) and coroutines for accepting and maintaining connections from clients via Telnet
     and SSH.
 
-    ! Create an akrios_ca to use for the SSH portion of the front end.  You can use the command below to
-    ! generate the file. Use a passphrase during ca generation, place it in keys.py.
-    !
-    ! ssh-keygen -f akrios_ca
-
     Please note the use of asyncio.sleep(0) in various loops to simply return control to the event loop.
     https://github.com/python/asyncio/issues/284
 """

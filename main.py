@@ -9,12 +9,21 @@
     Initial test of separating server(Socket) and game logic for Akrios.
     End game is to have several front ends available (Telnet, Secure Telnet, SSH, Web, etc)
     Should also allow to have connections stay up while restarting game
+
+    ! Create an akrios_ca to use for the SSH portion of the front end.  You can use the command below to
+    ! generate the file. Use a passphrase during ca generation, place it in keys.py.
+    !
+    ! ssh-keygen -f akrios_ca
+
+    ! Create a key for the secure Telnet connectivity.
+    ! openssl req -newkey rsa:2048 -nodes -keyout akrios.key -x509 -days 365 -out akrios.crt
 """
 
 # Standard Lib
 import asyncio
 import logging
 import signal
+import ssl
 
 # Third Party
 import asyncssh
@@ -61,6 +70,11 @@ if __name__ == '__main__':
     telnet_port = 6969
     ssh_port = 7979
     ws_port = 8989
+
+    # Set up our SSL context for Secure Telnet
+    ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    ssl_context.check_hostname = False
+    ssl_context.load_cert_chain('akrios.crt', 'akrios.key')
 
     log.info(f'Creating Telnet Listener on port {telnet_port}')
     log.info(f'Creating SSH Listener on port {ssh_port}')
