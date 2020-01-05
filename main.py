@@ -14,16 +14,12 @@
     ! generate the file. Use a passphrase during ca generation, place it in keys.py.
     !
     ! ssh-keygen -f akrios_ca
-
-    ! Create a key for the secure Telnet connectivity.
-    ! openssl req -newkey rsa:2048 -nodes -keyout akrios.key -x509 -days 365 -out akrios.crt
 """
 
 # Standard Lib
 import asyncio
 import logging
 import signal
-import ssl
 
 # Third Party
 import asyncssh
@@ -31,9 +27,9 @@ import telnetlib3
 import websockets
 
 # Project
-import client_telnetssh
+import clients
 from keys import passphrase as ca_phrase
-import server_ws
+import servers
 
 logging.basicConfig(format='%(asctime)s: %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -75,18 +71,18 @@ if __name__ == '__main__':
     log.info(f'Creating SSH Listener on port {ssh_port}')
     log.info(f'Creating Websocket Listener on port {ws_port}')
     all_servers = [telnetlib3.create_server(port=telnet_port,
-                                            shell=client_telnetssh.handle_client,
+                                            shell=clients.handle_client,
                                             connect_maxwait=0.5,
                                             timeout=3600),
-                   asyncssh.create_server(client_telnetssh.MySSHServer,
+                   asyncssh.create_server(clients.MySSHServer,
                                           '',
                                           ssh_port,
                                           server_host_keys=['akrios_ca'],
                                           passphrase=ca_phrase,
-                                          process_factory=client_telnetssh.handle_client,
+                                          process_factory=clients.handle_client,
                                           keepalive_interval=10,
                                           login_timeout=3600),
-                   websockets.serve(server_ws.ws_handler,
+                   websockets.serve(servers.ws_handler,
                                     'localhost',
                                     ws_port)
                    ]

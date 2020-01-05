@@ -1,6 +1,6 @@
 #! usr/bin/env python
 # Project: akrios-fe
-# Filename: server_ws.py
+# Filename: servers.py
 #
 # File Description: Game Engine connection websocket.
 #
@@ -23,7 +23,7 @@ from uuid import uuid4
 # Third Party
 
 # Project
-import client_telnetssh
+import clients
 from keys import WS_SECRET
 
 log = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class GameConnection(object):
             connections(dict): uuid -> GameConnection instance
                key: Unique game UUID
                value: an instance of GameConnection
-            client_to_game(dict): list
+            client_to_game(list)
                 A list of JSON strings that are messages destined to the game engine from clients.
 
         Instance variables:
@@ -50,7 +50,6 @@ class GameConnection(object):
 
     def __init__(self):
         self.state = {'connected': True}
-        self.tasks = []
         self.uuid = str(uuid4())
 
     @classmethod
@@ -117,23 +116,23 @@ async def ws_read(websocket_, game_connection):
             if msg['event'] == 'player/output':
                 session = msg['payload']['uuid']
                 message = msg['payload']['message']
-                if session in client_telnetssh.PlayerConnection.connections:
+                if session in clients.PlayerConnection.connections:
                     log.debug(f'Message Received confirmation:\n{msg}')
-                    client_telnetssh.PlayerConnection.game_to_client[session].append(message)
+                    clients.PlayerConnection.game_to_client[session].append(message)
 
             if msg['event'] == 'players/sign-in':
                 player = msg['payload']['name']
                 session = msg['payload']['uuid']
-                if session in client_telnetssh.PlayerConnection.connections:
+                if session in clients.PlayerConnection.connections:
                     log.debug(f'players/sign-in received for {player}@{session}')
-                    client_telnetssh.PlayerConnection.connections[session].name = player
+                    clients.PlayerConnection.connections[session].name = player
 
             if msg['event'] == 'players/sign-out':
                 player = msg['payload']['name']
                 session = msg['payload']['uuid']
-                if session in client_telnetssh.PlayerConnection.connections:
+                if session in clients.PlayerConnection.connections:
                     log.debug(f'players/sign-out received for {player}@{session}')
-                    client_telnetssh.PlayerConnection.connections[session].state['connected'] = False
+                    clients.PlayerConnection.connections[session].state['connected'] = False
 
             if msg['event'] == 'heartbeat':
                 delta = time.time() - last_heartbeat_received

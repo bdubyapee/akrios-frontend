@@ -1,6 +1,6 @@
 #! usr/bin/env python
 # Project: akrios-fe
-# Filename: client_telnetssh.py
+# Filename: clients.py
 #
 # File Description: Client connections via Telnet and SSh.
 #
@@ -23,7 +23,7 @@ from uuid import uuid4
 import asyncssh
 
 # Project
-import server_ws
+import servers
 from keys import WS_SECRET
 
 log = logging.getLogger(__name__)
@@ -46,7 +46,6 @@ class PlayerConnection(object):
             self.addr is the IP address portion of the client
             self.port is the port portion of the client
             self.state is the current state of the client connection
-            self.tasks is a set of the tasks associated with this connection.
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
     connections = {}
@@ -58,7 +57,6 @@ class PlayerConnection(object):
         self.state = {'connected': True,
                       'logged in': False}
         self.name = ''
-        self.tasks = []
         self.uuid = str(uuid4())
 
     def notify_connected(self):
@@ -73,7 +71,7 @@ class PlayerConnection(object):
                'secret': WS_SECRET,
                'payload': payload}
 
-        server_ws.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
+        servers.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
     def notify_disconnected(self):
         """
@@ -87,7 +85,7 @@ class PlayerConnection(object):
                'secret': WS_SECRET,
                'payload': payload}
 
-        server_ws.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
+        servers.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
     @classmethod
     def register_client(cls, connection):
@@ -127,7 +125,7 @@ async def client_read(reader, connection):
         We first await control back to the main loop until we have received some input (or an EOF)
             Mark the connection to disconnected and break out if a disconnect (EOF)
             else we handle the input. Client input packaged into a JSON payload and appended to the
-            client_to_akrios buffer.
+            client_to_game pipeline in server_ws.GameConnection.
     """
     while connection.state['connected']:
         inp = await reader.readline()
@@ -145,7 +143,7 @@ async def client_read(reader, connection):
                    'secret': WS_SECRET,
                    'payload': payload}
 
-            server_ws.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
+            servers.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
 
 async def client_write(writer, connection):
