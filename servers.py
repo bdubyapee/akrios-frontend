@@ -105,39 +105,40 @@ async def ws_read(websocket_, game_connection):
         inp = await websocket_.recv()
         if not inp:  # This is an EOF.   Hard disconnect.
             game_connection.state['connected'] = False
-        else:
-            log.debug(f'Websocket Received: {inp}')
-            msg = json.loads(inp)
+            return
 
-            if 'secret' not in msg.keys() or msg['secret'] != WS_SECRET:
-                log.warning('Breaking out of ws_handler as no secret in message header, or wrong key.')
-                break
+        log.debug(f'Websocket Received: {inp}')
+        msg = json.loads(inp)
 
-            if msg['event'] == 'player/output':
-                session = msg['payload']['uuid']
-                message = msg['payload']['message']
-                if session in clients.PlayerConnection.connections:
-                    log.debug(f'Message Received confirmation:\n{msg}')
-                    clients.PlayerConnection.game_to_client[session].append(message)
+        if 'secret' not in msg.keys() or msg['secret'] != WS_SECRET:
+            log.warning('Breaking out of ws_handler as no secret in message header, or wrong key.')
+            break
 
-            if msg['event'] == 'players/sign-in':
-                player = msg['payload']['name']
-                session = msg['payload']['uuid']
-                if session in clients.PlayerConnection.connections:
-                    log.debug(f'players/sign-in received for {player}@{session}')
-                    clients.PlayerConnection.connections[session].name = player
+        if msg['event'] == 'player/output':
+            session = msg['payload']['uuid']
+            message = msg['payload']['message']
+            if session in clients.PlayerConnection.connections:
+                log.debug(f'Message Received confirmation:\n{msg}')
+                clients.PlayerConnection.game_to_client[session].append(message)
 
-            if msg['event'] == 'players/sign-out':
-                player = msg['payload']['name']
-                session = msg['payload']['uuid']
-                if session in clients.PlayerConnection.connections:
-                    log.debug(f'players/sign-out received for {player}@{session}')
-                    clients.PlayerConnection.connections[session].state['connected'] = False
+        if msg['event'] == 'players/sign-in':
+            player = msg['payload']['name']
+            session = msg['payload']['uuid']
+            if session in clients.PlayerConnection.connections:
+                log.debug(f'players/sign-in received for {player}@{session}')
+                clients.PlayerConnection.connections[session].name = player
 
-            if msg['event'] == 'heartbeat':
-                delta = time.time() - last_heartbeat_received
-                last_heartbeat_received = time.time()
-                log.debug(f'Received heartbeat response from game. Last Response {delta:.6} seconds ago.')
+        if msg['event'] == 'players/sign-out':
+            player = msg['payload']['name']
+            session = msg['payload']['uuid']
+            if session in clients.PlayerConnection.connections:
+                log.debug(f'players/sign-out received for {player}@{session}')
+                clients.PlayerConnection.connections[session].state['connected'] = False
+
+        if msg['event'] == 'heartbeat':
+            delta = time.time() - last_heartbeat_received
+            last_heartbeat_received = time.time()
+            log.debug(f'Received heartbeat response from game. Last Response {delta:.6} seconds ago.')
 
 
 async def ws_write(websocket_, game_connection):

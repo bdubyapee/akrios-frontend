@@ -131,19 +131,19 @@ async def client_read(reader, connection):
         inp = await reader.readline()
         if not inp:  # This is an EOF.  Hard disconnect.
             connection.state['connected'] = False
-            break
-        else:
-            log.debug(f'Received Input of: {inp}')
+            return
 
-            payload = {'uuid': connection.uuid,
-                       'addr': connection.addr,
-                       'port': connection.port,
-                       'msg': inp.strip()}
-            msg = {'event': 'player/input',
-                   'secret': WS_SECRET,
-                   'payload': payload}
+        log.debug(f'Received Input of: {inp}')
 
-            servers.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
+        payload = {'uuid': connection.uuid,
+                   'addr': connection.addr,
+                   'port': connection.port,
+                   'msg': inp.strip()}
+        msg = {'event': 'player/input',
+               'secret': WS_SECRET,
+               'payload': payload}
+
+        servers.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
 
 
 async def client_write(writer, connection):
