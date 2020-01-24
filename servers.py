@@ -18,7 +18,6 @@ import asyncio
 import logging
 import json
 import os
-import telnetlib3
 import time
 from uuid import uuid4
 
@@ -171,18 +170,6 @@ async def ws_read(websocket_, game_connection):
                 log.debug(f'players/sign-out received for {player}@{session}')
                 clients.PlayerConnection.connections[session].state['connected'] = False
             continue
-
-        if msg['event'] == 'game/do-echo':
-            session = msg['payload']['uuid']
-            if session in clients.PlayerConnection.connections:
-                message = f'{telnetlib3.IAC}\n{telnetlib3.DO} {telnetlib3.ECHO}\n'
-                await messages_to_clients[session].put(message)
-
-        if msg['event'] == 'game/dont-echo':
-            session = msg['payload']['uuid']
-            if session in clients.PlayerConnection.connections:
-                message = f'{telnetlib3.IAC}\n{telnetlib3.DONT} {telnetlib3.ECHO}\n'
-                await messages_to_clients[session].put(message)
 
         if msg['event'] == 'game/softboot':
             log.info('Received game/softboot event in servers receiver.')

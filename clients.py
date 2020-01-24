@@ -48,9 +48,10 @@ class PlayerConnection(object):
     """
     connections = {}
 
-    def __init__(self, addr, port):
+    def __init__(self, addr, port, conn_type):
         self.addr = addr
         self.port = port
+        self.conn_type = conn_type
         self.state = {'connected': True,
                       'logged in': False}
         self.name = ''
@@ -150,6 +151,8 @@ async def client_write(writer, connection):
     while connection.state['connected']:
         message = await messages_to_clients[connection.uuid].get()
         writer.write(message)
+        if connection.conn_type == 'telnet':
+            writer.send_ga()
         await writer.drain()
 
 
@@ -180,7 +183,7 @@ async def handle_client(*args):
         log.debug(f'Writer details are: {dir(writer)}')
         addr, port = writer.get_extra_info('peername')
 
-    connection = PlayerConnection(addr, port)
+    connection = PlayerConnection(addr, port, conn_type)
     await connection.register_client(connection)
 
     asyncio.create_task(client_read(reader, connection), name=f'{connection.uuid} read')
