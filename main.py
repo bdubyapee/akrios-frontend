@@ -32,7 +32,7 @@ from keys import passphrase as ca_phrase
 import servers
 
 logging.basicConfig(format='%(asctime)s: %(name)s - %(levelname)s - %(message)s',
-                    level=logging.DEBUG)
+                    level=logging.INFO)
 log = logging.getLogger(__name__)
 
 
