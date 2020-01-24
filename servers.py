@@ -24,6 +24,8 @@ from uuid import uuid4
 # Third Party
 
 # Project
+from message_queues import messages_to_clients
+from message_queues import messages_to_game
 import clients
 from keys import WS_SECRET
 
@@ -39,15 +41,12 @@ class GameConnection(object):
             connections(dict): uuid -> GameConnection instance
                key: Unique game UUID
                value: an instance of GameConnection
-            client_to_game(list)
-                A list of JSON strings that are messages destined to the game engine from clients.
 
         Instance variables:
-            self.state is the current state of the client connection
+            self.state is the current state of the game connection
             self.uuid is a str(uuid.uuid4()) used for unique game connection session tracking
     """
     connections = {}
-    client_to_game = []
 
     def __init__(self):
         self.state = {'connected': True}
@@ -105,16 +104,15 @@ async def softboot_game(wait_time):
 
 
 async def softboot_connection_list(websocket_):
-    if clients.PlayerConnection.connections:
-        sessions = dict()
-        for k, v in clients.PlayerConnection.connections.items():
-            sessions[k] = [v.name, v.addr, v.port]
-        payload = {'players': sessions}
-        msg = {'event': 'game/load_players',
-               'secret': WS_SECRET,
-               'payload': payload}
+    sessions = dict()
+    for k, v in clients.PlayerConnection.connections.items():
+        sessions[k] = [v.name, v.addr, v.port]
+    payload = {'players': sessions}
+    msg = {'event': 'game/load_players',
+           'secret': WS_SECRET,
+           'payload': payload}
 
-        await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
+    await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
 
 
 async def ws_read(websocket_, game_connection):
@@ -126,7 +124,7 @@ async def ws_read(websocket_, game_connection):
         We want this coroutine to run while the game is connected, so we begin with a while loop
         We first await control back to the main loop until we have received some input (or an EOF)
             Mark the connection to disconnected and break out if a disconnect (EOF)
-            else we handle the input.
+            else we handle the message received from the game.
     """
     last_heartbeat_received = time.time()
 
@@ -148,12 +146,14 @@ async def ws_read(websocket_, game_connection):
             message = msg['payload']['message']
             if session in clients.PlayerConnection.connections:
                 log.debug(f'Message Received confirmation:\n{msg}')
-                clients.PlayerConnection.game_to_client[session].append(message)
+                await messages_to_clients[session].put(message)
+            continue
 
         if msg['event'] == 'heartbeat':
             delta = time.time() - last_heartbeat_received
             last_heartbeat_received = time.time()
             log.debug(f'Received heartbeat response from game. Last Response {delta:.6} seconds ago.')
+            continue
 
         if msg['event'] == 'players/sign-in':
             player = msg['payload']['name']
@@ -161,6 +161,7 @@ async def ws_read(websocket_, game_connection):
             if session in clients.PlayerConnection.connections:
                 log.debug(f'players/sign-in received for {player}@{session}')
                 clients.PlayerConnection.connections[session].name = player
+            continue
 
         if msg['event'] == 'players/sign-out':
             player = msg['payload']['name']
@@ -168,6 +169,7 @@ async def ws_read(websocket_, game_connection):
             if session in clients.PlayerConnection.connections:
                 log.debug(f'players/sign-out received for {player}@{session}')
                 clients.PlayerConnection.connections[session].state['connected'] = False
+            continue
 
         if msg['event'] == 'game/softboot':
             log.info('Received game/softboot event in servers receiver.')
@@ -183,12 +185,9 @@ async def ws_write(websocket_, game_connection):
         If no messages, we sleep(0) as every coroutine needs to await control back to the main event loop in some way.
     """
     while game_connection.state['connected']:
-        if GameConnection.client_to_game:
-            message = GameConnection.client_to_game.pop(0)
-            log.debug(f'ws_write sending to game : {message}')
-            await websocket_.send(message)
-        else:
-            await asyncio.sleep(0)
+        message = await messages_to_game.get()
+        log.debug(f'ws_write sending to game : {message}')
+        await websocket_.send(message)
 
 
 async def ws_handler(websocket_, path):

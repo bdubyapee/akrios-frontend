@@ -32,7 +32,7 @@ from keys import passphrase as ca_phrase
 import servers
 
 logging.basicConfig(format='%(asctime)s: %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+                    level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 
@@ -41,7 +41,6 @@ async def shutdown(signal_, loop_):
         shutdown coroutine utilized for cleanup on receipt of certain signals.
         Created and added as a handler to the loop in __main__
 
-        Courtesy of the great "talks" by Lynn Root
         https://www.roguelynn.com/talks/
     """
     log.warning(f'Received exit signal {signal_.name}')

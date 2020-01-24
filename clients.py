@@ -23,7 +23,8 @@ from uuid import uuid4
 import asyncssh
 
 # Project
-import servers
+from message_queues import messages_to_clients
+from message_queues import messages_to_game
 from keys import WS_SECRET
 
 log = logging.getLogger(__name__)
@@ -38,9 +39,6 @@ class PlayerConnection(object):
             connections(dict): uuid -> PlayerConnection instance
                key: Unique Client UUID
                value: an instance of PlayerConnection
-            game_to_client(dict): uuid -> list
-                key: Unique Client UUID
-                value: list of strings that are message outbound to that client from the game.
 
         Instance variables:
             self.addr is the IP address portion of the client
@@ -49,7 +47,6 @@ class PlayerConnection(object):
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
     connections = {}
-    game_to_client = {}
 
     def __init__(self, addr, port):
         self.addr = addr
@@ -59,10 +56,10 @@ class PlayerConnection(object):
         self.name = ''
         self.uuid = str(uuid4())
 
-    def notify_connected(self):
+    async def notify_connected(self):
         """
             Create JSON message to notify the game engine of a new client connection.
-            Append this message to client_to_game pipeline in server_ws.GameConnection.
+            Put this message into the messages_to_game asyncio.Queue().
         """
         payload = {'uuid': self.uuid,
                    'addr': self.addr,
@@ -71,12 +68,12 @@ class PlayerConnection(object):
                'secret': WS_SECRET,
                'payload': payload}
 
-        servers.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
+        await messages_to_game.put(json.dumps(msg, sort_keys=True, indent=4))
 
-    def notify_disconnected(self):
+    async def notify_disconnected(self):
         """
             Create JSON Payload to notify the game engine of a client disconnect.
-            Append to client_to_game pipeline in server_ws.GameConnection.
+            Put this message into the messages_to_game asyncio.Queue().
         """
         payload = {'uuid': self.uuid,
                    'addr': self.addr,
@@ -85,33 +82,30 @@ class PlayerConnection(object):
                'secret': WS_SECRET,
                'payload': payload}
 
-        servers.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
+        await messages_to_game.put(json.dumps(msg, sort_keys=True, indent=4))
 
     @classmethod
-    def register_client(cls, connection):
+    async def register_client(cls, connection):
         """
             Upon a new client connection, we register it to the PlayerConnection Class.
         """
         log.debug(f'Adding client {connection.uuid} to connections')
 
         cls.connections[connection.uuid] = connection
-        cls.game_to_client[connection.uuid] = []
+        messages_to_clients[connection.uuid] = asyncio.Queue()
 
-        connection.notify_connected()
+        await connection.notify_connected()
 
     @classmethod
-    def unregister_client(cls, connection):
+    async def unregister_client(cls, connection):
         """
             Upon client disconnect/quit, we unregister it from the PlayerConnection Class.
         """
         if connection.uuid in cls.connections:
             log.debug(f'Deleting connection {connection.uuid} from connections')
             cls.connections.pop(connection.uuid)
-            connection.notify_disconnected()
-
-            if connection.uuid in cls.game_to_client:
-                log.debug(f'unregister_connection : Deleting game messages found outbound to connection')
-                cls.game_to_client.pop(connection.uuid)
+            messages_to_clients.pop(connection.uuid)
+            await connection.notify_disconnected()
 
         else:
             log.warning(f'unregister_connection : {connection.uuid} not in connections!')
@@ -124,8 +118,8 @@ async def client_read(reader, connection):
         We want this coroutine to run while the client is connected, so we begin with a while loop
         We first await control back to the main loop until we have received some input (or an EOF)
             Mark the connection to disconnected and break out if a disconnect (EOF)
-            else we handle the input. Client input packaged into a JSON payload and appended to the
-            client_to_game pipeline in server_ws.GameConnection.
+            else we handle the input. Client input packaged into a JSON payload and put into the
+            messages_to_game asyncio.Queue()
     """
     while connection.state['connected']:
         inp = await reader.readline()
@@ -143,7 +137,7 @@ async def client_read(reader, connection):
                'secret': WS_SECRET,
                'payload': payload}
 
-        servers.GameConnection.client_to_game.append(json.dumps(msg, sort_keys=True, indent=4))
+        await messages_to_game.put(json.dumps(msg, sort_keys=True, indent=4))
 
 
 async def client_write(writer, connection):
@@ -151,21 +145,12 @@ async def client_write(writer, connection):
         Utilized by the client handler.
 
         We want this coroutine to run while the client is connected, so we begin with a while loop
-        If the clients uuid is a key in the game_to_client dict, and if the value is not an empty list....
-        then we have something to send to the client!
-
-        We pop that message from the list and write it (to a client out buffer somewhere up the chain), we
-        then await control back to the main loop while waiting for the client buffer to "drain" (send data).
-
-        If we have nothing to send to the client, we simply sleep(0) so that we have yielded control
-        back up to the main event loop.
+        We await for any messages from the game, then write and drain it.
     """
     while connection.state['connected']:
-        if connection.uuid in PlayerConnection.game_to_client and PlayerConnection.game_to_client[connection.uuid]:
-            writer.write(PlayerConnection.game_to_client[connection.uuid].pop(0))
-            await writer.drain()
-        else:
-            await asyncio.sleep(0)
+        message = await messages_to_clients[connection.uuid].get()
+        writer.write(message)
+        await writer.drain()
 
 
 async def handle_client(*args):
@@ -196,9 +181,7 @@ async def handle_client(*args):
         addr, port = writer.get_extra_info('peername')
 
     connection = PlayerConnection(addr, port)
-    connection.register_client(connection)
-
-    writer.write(f'\r\nConnecting you to Akrios...\n\r ')
+    await connection.register_client(connection)
 
     asyncio.create_task(client_read(reader, connection), name=f'{connection.uuid} read')
     asyncio.create_task(client_write(writer, connection), name=f'{connection.uuid} write')
@@ -209,7 +192,7 @@ async def handle_client(*args):
         while connection.state['connected']:
             await asyncio.sleep(0)
     finally:
-        connection.unregister_client(connection)
+        await connection.unregister_client(connection)
 
         if conn_type == 'ssh':
             process.close()
