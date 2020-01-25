@@ -187,14 +187,15 @@ async def handle_client(*args):
     connection = PlayerConnection(addr, port, conn_type)
     await connection.register_client(connection)
 
-    asyncio.create_task(client_read(reader, connection), name=f'{connection.uuid} read')
-    asyncio.create_task(client_write(writer, connection), name=f'{connection.uuid} write')
+    tasks = [
+             asyncio.create_task(client_read(reader, connection), name=f'{connection.uuid} read'),
+             asyncio.create_task(client_write(writer, connection), name=f'{connection.uuid} write')
+            ]
     handler_task = asyncio.current_task()
     handler_task.set_name(f'{connection.uuid} handler')
 
     try:
-        while connection.state['connected']:
-            await asyncio.sleep(0)
+        await asyncio.gather(*tasks)
     finally:
         await connection.unregister_client(connection)
 
@@ -204,6 +205,9 @@ async def handle_client(*args):
         elif conn_type == 'telnet':
             writer.write_eof()
             writer.close()
+
+        for each_task in tasks:
+            each_task.cancel()
 
 
 class MySSHServer(asyncssh.SSHServer):

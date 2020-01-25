@@ -86,6 +86,7 @@ async def ws_heartbeat(websocket_, game_connection):
                'tasks': len(asyncio.all_tasks()),
                'secret': WS_SECRET}
 
+        log.info(msg)
         await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
         await asyncio.sleep(10)
 
@@ -97,9 +98,7 @@ async def softboot_game(wait_time):
         The game has notified that it will shutdown.  We take the wait_time, sleep that time and then
         launch the game.
     """
-    log.info('softboot_game before sleep')
     await asyncio.sleep(wait_time)
-    log.info('softboot_game after sleep')
     os.system("python3.8 /home/bwp/PycharmProjects/akriosmud/src/akrios.py &")
 
 
@@ -175,7 +174,6 @@ async def ws_read(websocket_, game_connection):
             session = msg['payload']['uuid']
             command = msg['payload']['command']
             if session in clients.PlayerConnection.connections:
-                log.info(f'players/session command {command} received for {session}')
                 if clients.PlayerConnection.connections[session].conn_type == 'telnet':
                     if command == 'do echo':
                         message = (clients.WONT, clients.ECHO)
@@ -222,9 +220,11 @@ async def ws_handler(websocket_, path):
 
     log.info(f'Received websocket connection from game.')
 
-    asyncio.create_task(ws_heartbeat(websocket_, game_connection), name=f'WS: {game_connection.uuid} hb')
-    asyncio.create_task(ws_read(websocket_, game_connection), name=f'WS: {game_connection.uuid} read')
-    asyncio.create_task(ws_write(websocket_, game_connection), name=f'WS: {game_connection.uuid} write')
+    tasks = [
+             asyncio.create_task(ws_heartbeat(websocket_, game_connection), name=f'WS: {game_connection.uuid} hb'),
+             asyncio.create_task(ws_read(websocket_, game_connection), name=f'WS: {game_connection.uuid} read'),
+             asyncio.create_task(ws_write(websocket_, game_connection), name=f'WS: {game_connection.uuid} write')
+            ]
     task_ws_handler = asyncio.current_task()
     task_ws_handler.set_name(f'WS: {game_connection.uuid} handler')
 
@@ -232,10 +232,12 @@ async def ws_handler(websocket_, path):
         await softboot_connection_list(websocket_)
 
     try:
-        while game_connection.state['connected']:
-            await asyncio.sleep(0)
+        await asyncio.gather(*tasks)
     finally:
         game_connection.unregister_client(game_connection)
         log.info(f'Closing websocket')
 
         await websocket_.close()
+
+        for each_task in tasks:
+            each_task.cancel()
