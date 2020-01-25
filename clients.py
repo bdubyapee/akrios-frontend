@@ -21,6 +21,7 @@ from uuid import uuid4
 
 # Third Party
 import asyncssh
+from telnetlib3 import WILL, WONT, ECHO
 
 # Project
 from message_queues import messages_to_clients
@@ -150,9 +151,10 @@ async def client_write(writer, connection):
     """
     while connection.state['connected']:
         message = await messages_to_clients[connection.uuid].get()
-        writer.write(message)
-        if connection.conn_type == 'telnet':
-            writer.send_ga()
+        if type(message) is str:
+            writer.write(message)
+        elif type(message) is tuple:
+            writer.iac(message[0], message[1])
         await writer.drain()
 
 
@@ -179,9 +181,8 @@ async def handle_client(*args):
         process = None
         reader = args[0]
         writer = args[1]
-        log.debug(f'Reader details are: {dir(reader)}')
-        log.debug(f'Writer details are: {dir(writer)}')
         addr, port = writer.get_extra_info('peername')
+        writer.iac(WONT, ECHO)
 
     connection = PlayerConnection(addr, port, conn_type)
     await connection.register_client(connection)

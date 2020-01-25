@@ -141,7 +141,7 @@ async def ws_read(websocket_, game_connection):
             log.warning('Breaking out of ws_handler as no secret in message header, or wrong key.')
             break
 
-        if msg['event'] == 'player/output':
+        if msg['event'] == 'players/output':
             session = msg['payload']['uuid']
             message = msg['payload']['message']
             if session in clients.PlayerConnection.connections:
@@ -163,12 +163,27 @@ async def ws_read(websocket_, game_connection):
                 clients.PlayerConnection.connections[session].name = player
             continue
 
-        if msg['event'] == 'players/sign-out':
+        if msg['event'] == 'players/sign-out' or msg['event'] == 'players/login-failed':
             player = msg['payload']['name']
             session = msg['payload']['uuid']
             if session in clients.PlayerConnection.connections:
-                log.debug(f'players/sign-out received for {player}@{session}')
+                log.debug(f'{msg["event"]} received for {player}@{session}')
                 clients.PlayerConnection.connections[session].state['connected'] = False
+            continue
+
+        if msg['event'] == 'player/session command':
+            session = msg['payload']['uuid']
+            command = msg['payload']['command']
+            if session in clients.PlayerConnection.connections:
+                log.info(f'players/session command {command} received for {session}')
+                if clients.PlayerConnection.connections[session].conn_type == 'telnet':
+                    if command == 'do echo':
+                        message = (clients.WONT, clients.ECHO)
+                    elif command == 'dont echo':
+                        message = (clients.WILL, clients.ECHO)
+                    else:
+                        continue
+                    await messages_to_clients[session].put(message)
             continue
 
         if msg['event'] == 'game/softboot':
