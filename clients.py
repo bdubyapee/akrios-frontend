@@ -194,20 +194,19 @@ async def handle_client(*args):
     handler_task = asyncio.current_task()
     handler_task.set_name(f'{connection.uuid} handler')
 
-    try:
-        await asyncio.gather(*tasks)
-    finally:
-        await connection.unregister_client(connection)
+    done, rest = await asyncio.wait(tasks, return_when='FIRST_COMPLETED')
 
-        if conn_type == 'ssh':
-            process.close()
-            process.exit(0)
-        elif conn_type == 'telnet':
-            writer.write_eof()
-            writer.close()
+    await connection.unregister_client(connection)
 
-        for each_task in tasks:
-            each_task.cancel()
+    if conn_type == 'ssh':
+        process.close()
+        process.exit(0)
+    elif conn_type == 'telnet':
+        writer.write_eof()
+        writer.close()
+
+    for each_task in rest:
+        each_task.cancel()
 
 
 class MySSHServer(asyncssh.SSHServer):

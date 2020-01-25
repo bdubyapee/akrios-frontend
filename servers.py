@@ -231,13 +231,12 @@ async def ws_handler(websocket_, path):
     if clients.PlayerConnection.connections:
         await softboot_connection_list(websocket_)
 
-    try:
-        await asyncio.gather(*tasks)
-    finally:
-        game_connection.unregister_client(game_connection)
-        log.info(f'Closing websocket')
+    done, rest = await asyncio.wait(tasks, return_when='FIRST_COMPLETED')
 
-        await websocket_.close()
+    game_connection.unregister_client(game_connection)
+    log.info(f'Closing websocket')
 
-        for each_task in tasks:
-            each_task.cancel()
+    await websocket_.close()
+
+    for each_task in rest:
+        each_task.cancel()
