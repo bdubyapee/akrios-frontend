@@ -164,10 +164,12 @@ async def ws_read(websocket_, game_connection):
 
         if msg['event'] == 'players/sign-out' or msg['event'] == 'players/login-failed':
             player = msg['payload']['name']
+            message = msg['payload']['message']
             session = msg['payload']['uuid']
             if session in clients.PlayerConnection.connections:
                 log.debug(f'{msg["event"]} received for {player}@{session}')
                 clients.PlayerConnection.connections[session].state['connected'] = False
+                await messages_to_clients[session].put(message)
             continue
 
         if msg['event'] == 'player/session command':
@@ -231,12 +233,10 @@ async def ws_handler(websocket_, path):
     if clients.PlayerConnection.connections:
         await softboot_connection_list(websocket_)
 
-    done, rest = await asyncio.wait(tasks, return_when='FIRST_COMPLETED')
+    done, rest = await asyncio.wait(tasks, return_when='ALL_COMPLETED')
 
     game_connection.unregister_client(game_connection)
     log.info(f'Closing websocket')
-
-    await websocket_.close()
 
     for each_task in rest:
         each_task.cancel()
