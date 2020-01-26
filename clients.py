@@ -8,9 +8,6 @@
 """
     Housing the Class(es) and coroutines for accepting and maintaining connections from clients via Telnet
     and SSH.
-
-    Please note the use of asyncio.sleep(0) in various loops to simply return control to the event loop.
-    https://github.com/python/asyncio/issues/284
 """
 
 # Standard Library
@@ -21,7 +18,7 @@ from uuid import uuid4
 
 # Third Party
 import asyncssh
-from telnetlib3 import WILL, WONT, ECHO
+from telnetlib3 import WONT, ECHO
 
 # Project
 from message_queues import messages_to_clients
@@ -44,18 +41,21 @@ class PlayerConnection(object):
         Instance variables:
             self.addr is the IP address portion of the client
             self.port is the port portion of the client
+            self.conn_type is the type of client connection
             self.state is the current state of the client connection
+            self.name is any authenticated player name associated with this session
+                Currently used for "softboot" capability
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
+
     connections = {}
 
     def __init__(self, addr, port, conn_type):
         self.addr = addr
         self.port = port
         self.conn_type = conn_type
-        self.state = {'connected': True,
-                      'logged in': False}
-        self.name = ''
+        self.state = {"connected": True, "logged in": False}
+        self.name = ""
         self.uuid = str(uuid4())
 
     async def notify_connected(self):
@@ -63,12 +63,8 @@ class PlayerConnection(object):
             Create JSON message to notify the game engine of a new client connection.
             Put this message into the messages_to_game asyncio.Queue().
         """
-        payload = {'uuid': self.uuid,
-                   'addr': self.addr,
-                   'port': self.port}
-        msg = {'event': 'connection/connected',
-               'secret': WS_SECRET,
-               'payload': payload}
+        payload = {"uuid": self.uuid, "addr": self.addr, "port": self.port}
+        msg = {"event": "connection/connected", "secret": WS_SECRET, "payload": payload}
 
         await messages_to_game.put(json.dumps(msg, sort_keys=True, indent=4))
 
@@ -77,12 +73,12 @@ class PlayerConnection(object):
             Create JSON Payload to notify the game engine of a client disconnect.
             Put this message into the messages_to_game asyncio.Queue().
         """
-        payload = {'uuid': self.uuid,
-                   'addr': self.addr,
-                   'port': self.port}
-        msg = {'event': 'connection/disconnected',
-               'secret': WS_SECRET,
-               'payload': payload}
+        payload = {"uuid": self.uuid, "addr": self.addr, "port": self.port}
+        msg = {
+            "event": "connection/disconnected",
+            "secret": WS_SECRET,
+            "payload": payload,
+        }
 
         await messages_to_game.put(json.dumps(msg, sort_keys=True, indent=4))
 
@@ -91,7 +87,7 @@ class PlayerConnection(object):
         """
             Upon a new client connection, we register it to the PlayerConnection Class.
         """
-        log.debug(f'Adding client {connection.uuid} to connections')
+        log.debug(f"Adding client {connection.uuid} to connections")
 
         cls.connections[connection.uuid] = connection
         messages_to_clients[connection.uuid] = asyncio.Queue()
@@ -104,52 +100,54 @@ class PlayerConnection(object):
             Upon client disconnect/quit, we unregister it from the PlayerConnection Class.
         """
         if connection.uuid in cls.connections:
-            log.debug(f'Deleting connection {connection.uuid} from connections')
+            log.debug(f"Deleting connection {connection.uuid} from connections")
             cls.connections.pop(connection.uuid)
             messages_to_clients.pop(connection.uuid)
             await connection.notify_disconnected()
 
         else:
-            log.warning(f'unregister_connection : {connection.uuid} not in connections!')
+            log.warning(
+                f"unregister_connection : {connection.uuid} not in connections!"
+            )
 
 
 async def client_read(reader, connection):
     """
-        Utilized by the client handler.
+        Utilized by the client_handler.
 
         We want this coroutine to run while the client is connected, so we begin with a while loop
-        We first await control back to the main loop until we have received some input (or an EOF)
+        We first await control back to the loop until we have received some input (or an EOF)
             Mark the connection to disconnected and break out if a disconnect (EOF)
             else we handle the input. Client input packaged into a JSON payload and put into the
             messages_to_game asyncio.Queue()
     """
-    while connection.state['connected']:
+    while connection.state["connected"]:
         inp = await reader.readline()
         if not inp:  # This is an EOF.  Hard disconnect.
-            connection.state['connected'] = False
+            connection.state["connected"] = False
             return
 
-        log.debug(f'Received Input of: {inp}')
+        log.debug(f"Received Input of: {inp}")
 
-        payload = {'uuid': connection.uuid,
-                   'addr': connection.addr,
-                   'port': connection.port,
-                   'msg': inp.strip()}
-        msg = {'event': 'player/input',
-               'secret': WS_SECRET,
-               'payload': payload}
+        payload = {
+            "uuid": connection.uuid,
+            "addr": connection.addr,
+            "port": connection.port,
+            "msg": inp.strip(),
+        }
+        msg = {"event": "player/input", "secret": WS_SECRET, "payload": payload}
 
         await messages_to_game.put(json.dumps(msg, sort_keys=True, indent=4))
 
 
 async def client_write(writer, connection):
     """
-        Utilized by the client handler.
+        Utilized by the client_handler.
 
         We want this coroutine to run while the client is connected, so we begin with a while loop
-        We await for any messages from the game, then write and drain it.
+        We await for any messages from the game to this client, then write and drain it.
     """
-    while connection.state['connected']:
+    while connection.state["connected"]:
         message = await messages_to_clients[connection.uuid].get()
         if type(message) is str:
             writer.write(message)
@@ -158,7 +156,7 @@ async def client_write(writer, connection):
         await writer.drain()
 
 
-async def handle_client(*args):
+async def client_handler(*args):
     """
     This is a generic handler/"shell".  It is called on new connections of both
     telnet and SSH clients.
@@ -170,38 +168,50 @@ async def handle_client(*args):
     Or perhaps break it into two handlers anyway.  Investigate this.
     """
     if len(args) == 1:
-        conn_type = 'ssh'
+        conn_type = "ssh"
         process = args[0]
-        log.debug(f'SSH details are: {dir(process)}')
+        log.debug(f"SSH details are: {dir(process)}")
         reader = process.stdin
         writer = process.stdout
-        addr, port = process.get_extra_info('peername')
+        addr, port = process.get_extra_info("peername")
     else:
-        conn_type = 'telnet'
+        conn_type = "telnet"
         process = None
         reader = args[0]
         writer = args[1]
-        addr, port = writer.get_extra_info('peername')
+        addr, port = writer.get_extra_info("peername")
+
+        # Need to work on slightly better telnet support for regular old telnet clients.
+        # Everything so far works great in Mudlet.  Just saying.
+        # We sent an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
         writer.iac(WONT, ECHO)
 
     connection = PlayerConnection(addr, port, conn_type)
     await connection.register_client(connection)
 
     tasks = [
-             asyncio.create_task(client_read(reader, connection), name=f'{connection.uuid} read'),
-             asyncio.create_task(client_write(writer, connection), name=f'{connection.uuid} write')
-            ]
-    handler_task = asyncio.current_task()
-    handler_task.set_name(f'{connection.uuid} handler')
+        asyncio.create_task(
+            client_read(reader, connection), name=f"{connection.uuid} read"
+        ),
+        asyncio.create_task(
+            client_write(writer, connection), name=f"{connection.uuid} write"
+        ),
+    ]
 
-    done, rest = await asyncio.wait(tasks, return_when='FIRST_COMPLETED')
+    handler_task = asyncio.current_task()
+    handler_task.set_name(f"{connection.uuid} handler")
+
+    # We want to .wait until the first task is completed.  Completed could be an actual finishing
+    # of execution or an exception.  If either the read or writer "completes", we want to ensure
+    # we move beyond this point and cleanup the tasks associated with this client.
+    _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
     await connection.unregister_client(connection)
 
-    if conn_type == 'ssh':
+    if conn_type == "ssh":
         process.close()
         process.exit(0)
-    elif conn_type == 'telnet':
+    elif conn_type == "telnet":
         writer.write_eof()
         writer.close()
 
@@ -216,14 +226,15 @@ class MySSHServer(asyncssh.SSHServer):
 
     XXX Clean this up and document it.  Came from the asyncssh docs somewhere.
     """
+
     def connection_made(self, conn):
         log.info(f'SSH connection received from {conn.get_extra_info("peername")[0]}')
 
     def connection_lost(self, exc):
         if exc:
-            log.warning(f'SSH connection error: {str(exc)}')
+            log.warning(f"SSH connection error: {str(exc)}")
         else:
-            log.info('SSH connection closed.')
+            log.info("SSH connection closed.")
 
     def begin_auth(self, username):
         return False
