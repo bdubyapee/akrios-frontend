@@ -3,6 +3,7 @@
     <words>
       <w>addr</w>
       <w>akrios</w>
+      <w>akriosmud</w>
       <w>asctime</w>
       <w>asyncio</w>
       <w>asyncssh</w>
@@ -14,6 +15,7 @@
       <w>passphrase</w>
       <w>peername</w>
       <w>skiddo</w>
+      <w>softboot</w>
       <w>telnetlib</w>
       <w>telnetssh</w>
       <w>websocket</w>

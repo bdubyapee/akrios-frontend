@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8422f22f-cbea-42b5-9fa7-6f1037af79a1" name="Default Changelist" comment="">
+    <list default="true" id="8422f22f-cbea-42b5-9fa7-6f1037af79a1" name="Default Changelist" comment="Rollback for echo on Telnet">
+      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/bwp.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/bwp.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client_telnetssh.py" beforeDir="false" afterPath="$PROJECT_DIR$/client_telnetssh.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server_ws.py" beforeDir="false" afterPath="$PROJECT_DIR$/server_ws.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/servers.py" beforeDir="false" afterPath="$PROJECT_DIR$/servers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -192,13 +193,151 @@
       <option name="project" value="LOCAL" />
       <updated>1577059280457</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="FE &lt;-&gt; game player logouts">
+      <created>1577060554804</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1577060554804</updated>
+    </task>
+    <task id="LOCAL-00018" summary="FE &lt;-&gt; game player log out handling and other cleanup.">
+      <created>1577919349425</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1577919349425</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Removed some unnecessary task tracking.">
+      <created>1577920251353</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1577920251353</updated>
+    </task>
+    <task id="LOCAL-00020" summary="Back out of changes trying for secure telnet to focus on game engine updates.">
+      <created>1578187049946</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1578187049946</updated>
+    </task>
+    <task id="LOCAL-00021" summary="Additional tweak to back out of secure telnet for now.">
+      <created>1578187160139</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1578187160139</updated>
+    </task>
+    <task id="LOCAL-00022" summary="Refactor file names.  Tweaked some doc strings.">
+      <created>1578196523486</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1578196523486</updated>
+    </task>
+    <task id="LOCAL-00023" summary="De-Indented read structure slightly.">
+      <created>1578196842173</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1578196842173</updated>
+    </task>
+    <task id="LOCAL-00024" summary="First draft of game &quot;softboot&quot; capability.">
+      <created>1578261576796</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1578261576796</updated>
+    </task>
+    <task id="LOCAL-00025" summary="First draft of game &quot;softboot&quot; capability.">
+      <created>1578264151820</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1578264151820</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Second draft of game &quot;softboot&quot; capability.">
+      <created>1578268246381</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1578268246381</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Adding asyncio Queues for message passing.">
+      <created>1579903623855</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1579903623855</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Updated for do/dont echo for telnet clients.">
+      <created>1579907977777</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1579907977777</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Rollback for echo on Telnet">
+      <created>1579909154612</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1579909154612</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Working on Echo on/off when client entering password.">
+      <created>1579989138320</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1579989138320</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Implemented asyncio.gather() for main loops to get rid of asyncio.sleep(0)">
+      <created>1579991258750</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1579991258750</updated>
+    </task>
+    <task id="LOCAL-00032" summary="We actually want to wait on the first 'done' or exceptioned sub task, and then cancel the session specific tasks.">
+      <created>1579993242171</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1579993242171</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Tweaking asyncio.wait to ALL_FINISHED so the softboot restart has time to complete.">
+      <created>1579998052579</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1579998052580</updated>
+    </task>
+    <task id="LOCAL-00034" summary="Ran through the Black code formatter.  Updated lots of doc strings and inline comments.">
+      <created>1580066567665</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1580066567665</updated>
+    </task>
+    <task id="LOCAL-00035" summary="Finish refactor in clients.py of handle_client to client_handler to match the rest of the package.">
+      <created>1580066807846</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1580066807846</updated>
+    </task>
+    <task id="LOCAL-00036" summary="Rollback for echo on Telnet">
+      <created>1580067830666</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1580067830666</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Round 2" />
-    <MESSAGE value="Revert &quot;Delete keys.py&quot;&#10;&#10;This reverts commit 717f7108" />
     <MESSAGE value="Round 2. Again." />
     <MESSAGE value="Almost there" />
     <MESSAGE value="Revert &quot;Delete keys.py&quot;&#10;&#10;This reverts commit ae7542e2" />
@@ -207,13 +346,30 @@
     <MESSAGE value="Restructuring file layout." />
     <MESSAGE value="Working on import loop." />
     <MESSAGE value="FE &lt;-&gt; game player logouts" />
-    <option name="LAST_COMMIT_MESSAGE" value="FE &lt;-&gt; game player logouts" />
+    <MESSAGE value="FE &lt;-&gt; game player log out handling and other cleanup." />
+    <MESSAGE value="Removed some unnecessary task tracking." />
+    <MESSAGE value="Back out of changes trying for secure telnet to focus on game engine updates." />
+    <MESSAGE value="Additional tweak to back out of secure telnet for now." />
+    <MESSAGE value="Refactor file names.  Tweaked some doc strings." />
+    <MESSAGE value="De-Indented read structure slightly." />
+    <MESSAGE value="First draft of game &quot;softboot&quot; capability." />
+    <MESSAGE value="Second draft of game &quot;softboot&quot; capability." />
+    <MESSAGE value="Adding asyncio Queues for message passing." />
+    <MESSAGE value="Updated for do/dont echo for telnet clients." />
+    <MESSAGE value="Working on Echo on/off when client entering password." />
+    <MESSAGE value="Implemented asyncio.gather() for main loops to get rid of asyncio.sleep(0)" />
+    <MESSAGE value="We actually want to wait on the first 'done' or exceptioned sub task, and then cancel the session specific tasks." />
+    <MESSAGE value="Tweaking asyncio.wait to ALL_FINISHED so the softboot restart has time to complete." />
+    <MESSAGE value="Ran through the Black code formatter.  Updated lots of doc strings and inline comments." />
+    <MESSAGE value="Finish refactor in clients.py of handle_client to client_handler to match the rest of the package." />
+    <MESSAGE value="Rollback for echo on Telnet" />
+    <option name="LAST_COMMIT_MESSAGE" value="Rollback for echo on Telnet" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1577059280389">
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1580069971649">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1577059280389" />
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1580069971649" />
     <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1576882556650">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -242,9 +398,13 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="698" y="195" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1575739232899" />
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1577059281925">
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580069973464">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1577059281925" />
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1580069973464" />
+    <state x="657" y="195" width="662" height="715" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1578259411782">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="657" y="195" width="662" height="715" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/67.27.1853.1053@67.27.1853.1053" timestamp="1578259411782" />
   </component>
 </project>
