@@ -20,7 +20,6 @@ from uuid import uuid4
 
 # Third Party
 from telnetlib3 import WILL, WONT, ECHO
-from websockets.exceptions import ConnectionClosedOK
 
 # Project
 from message_queues import messages_to_clients
@@ -265,13 +264,14 @@ async def ws_handler(websocket_, path):
     if clients.PlayerConnection.connections:
         await softboot_connection_list(websocket_)
 
-    # We need to be cognisant that due to the softboot_game coroutine has a slight sleep associated
-    # with it prior to running the new game instance.  Using .wait instead of .gather allows us
-    # to not execute beyond this line (in this coroutine) until, you guessed it, ALL tasks have completed.
-    try:
-        _, pending = await asyncio.wait(tasks, return_when="ALL_COMPLETED")
-    except ConnectionClosedOK as err_code:
-        log.info(f'Caught a ConnectionClosedOK exception: {err_code}')
-    finally:
-        game_connection.unregister_client(game_connection)
-        log.info(f"Closing websocket")
+    _, pending = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
+
+    # Cancel any tasks associated with the 'current' game connection based on task name
+    # containing a uuid for that connection.  This prevents the softboot, client and any other
+    # task from cancelling unless they were specific to the connection.
+    for each_task in asyncio.all_tasks():
+        if game_connection.uuid in each_task.get_name():
+            each_task.cancel()
+
+    game_connection.unregister_client(game_connection)
+    log.info(f"Closing websocket")
