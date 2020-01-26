@@ -19,6 +19,7 @@ import time
 from uuid import uuid4
 
 # Third Party
+from telnetlib3 import WILL, WONT, ECHO
 
 # Project
 from message_queues import messages_to_clients
@@ -193,9 +194,9 @@ async def ws_read(websocket_, game_connection):
             if session in clients.PlayerConnection.connections:
                 if clients.PlayerConnection.connections[session].conn_type == "telnet":
                     if command == "do echo":
-                        message = (clients.WONT, clients.ECHO)
+                        message = (WONT, ECHO)
                     elif command == "dont echo":
-                        message = (clients.WILL, clients.ECHO)
+                        message = (WILL, ECHO)
                     else:
                         continue
                     await messages_to_clients[session].put(message)

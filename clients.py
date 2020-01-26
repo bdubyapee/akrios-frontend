@@ -146,6 +146,8 @@ async def client_write(writer, connection):
 
         We want this coroutine to run while the client is connected, so we begin with a while loop
         We await for any messages from the game to this client, then write and drain it.
+
+        XXX Message handling for 'non game text' is ugly as sin.  Will fix next.
     """
     while connection.state["connected"]:
         message = await messages_to_clients[connection.uuid].get()

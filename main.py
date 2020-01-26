@@ -81,7 +81,7 @@ if __name__ == "__main__":
     all_servers = [
         telnetlib3.create_server(
             port=telnet_port,
-            shell=clients.handle_client,
+            shell=clients.client_handler,
             connect_maxwait=0.5,
             timeout=3600,
             log=log,
@@ -92,7 +92,7 @@ if __name__ == "__main__":
             ssh_port,
             server_host_keys=["akrios_ca"],
             passphrase=ca_phrase,
-            process_factory=clients.handle_client,
+            process_factory=clients.client_handler,
             keepalive_interval=10,
             login_timeout=3600,
         ),
