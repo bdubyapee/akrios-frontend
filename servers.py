@@ -14,12 +14,13 @@
 import asyncio
 import logging
 import json
-import os
+import subprocess
 import time
 from uuid import uuid4
 
 # Third Party
 from telnetlib3 import WILL, WONT, ECHO
+from websockets.exceptions import ConnectionClosedOK
 
 # Project
 from message_queues import messages_to_clients
@@ -103,7 +104,7 @@ async def softboot_game(wait_time):
         launch the game.
     """
     await asyncio.sleep(wait_time)
-    os.system("python3.8 /home/bwp/PycharmProjects/akriosmud/src/akrios.py &")
+    subprocess.Popen(['python3.8', '/home/bwp/PycharmProjects/akriosmud/src/akrios.py', '&'])
 
 
 async def softboot_connection_list(websocket_):
@@ -267,12 +268,10 @@ async def ws_handler(websocket_, path):
     # We need to be cognisant that due to the softboot_game coroutine has a slight sleep associated
     # with it prior to running the new game instance.  Using .wait instead of .gather allows us
     # to not execute beyond this line (in this coroutine) until, you guessed it, ALL tasks have completed.
-    _, pending = await asyncio.wait(tasks, return_when="ALL_COMPLETED")
-
-    game_connection.unregister_client(game_connection)
-    log.info(f"Closing websocket")
-
-    # At this point, due to .wait(ing), we should not have to cancel any tasks.
-    # XXX Investigate removing this as unnecessary.
-    for each_task in pending:
-        each_task.cancel()
+    try:
+        _, pending = await asyncio.wait(tasks, return_when="ALL_COMPLETED")
+    except ConnectionClosedOK as err_code:
+        log.info(f'Caught a ConnectionClosedOK exception: {err_code}')
+    finally:
+        game_connection.unregister_client(game_connection)
+        log.info(f"Closing websocket")

@@ -62,6 +62,12 @@ async def shutdown(signal_, loop_):
     loop_.stop()
 
 
+def handle_exception(loop_, context):
+    # context["message"] will always be there; but context["exception"] may not
+    msg = context.get("exception", context["message"])
+    logging.error(f"Caught exception: {msg}")
+
+
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
@@ -70,6 +76,8 @@ if __name__ == "__main__":
         loop.add_signal_handler(
             sig, lambda s=sig: asyncio.create_task(shutdown(s, loop))
         )
+
+    loop.set_exception_handler(handle_exception)
 
     telnet_port = 6969
     ssh_port = 7979
