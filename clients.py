@@ -21,8 +21,9 @@ import asyncssh
 from telnetlib3 import WONT, ECHO
 
 # Project
-from message_queues import messages_to_clients
-from message_queues import messages_to_game
+from messages import Message
+from messages import messages_to_clients
+from messages import messages_to_game
 from keys import WS_SECRET
 
 log = logging.getLogger(__name__)
@@ -66,7 +67,7 @@ class PlayerConnection(object):
         payload = {"uuid": self.uuid, "addr": self.addr, "port": self.port}
         msg = {"event": "connection/connected", "secret": WS_SECRET, "payload": payload}
 
-        await messages_to_game.put(json.dumps(msg, sort_keys=True, indent=4))
+        await messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
 
     async def notify_disconnected(self):
         """
@@ -80,7 +81,7 @@ class PlayerConnection(object):
             "payload": payload,
         }
 
-        await messages_to_game.put(json.dumps(msg, sort_keys=True, indent=4))
+        await messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
 
     @classmethod
     async def register_client(cls, connection):
@@ -139,7 +140,7 @@ async def client_read(reader, connection):
         }
         msg = {"event": "player/input", "secret": WS_SECRET, "payload": payload}
 
-        await messages_to_game.put(json.dumps(msg, sort_keys=True, indent=4))
+        await messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
 
 
 async def client_write(writer, connection):
@@ -148,16 +149,16 @@ async def client_write(writer, connection):
 
         We want this coroutine to run while the client is connected, so we begin with a while loop
         We await for any messages from the game to this client, then write and drain it.
-
-        XXX Message handling for 'non game text' is ugly as sin.  Will fix next.
     """
     while connection.state["connected"]:
-        message = await messages_to_clients[connection.uuid].get()
+        msg_obj = await messages_to_clients[connection.uuid].get()
+        if msg_obj.is_io:
+            writer.write(msg_obj.msg)
+        elif msg_obj.is_command_telnet:
+            writer.iac(msg_obj.msg[0], msg_obj.msg[1])
+        else:
+            log.warning(f'Trying to write message to client that is not IO or COMMAND-TYPE\n\r{msg_obj.msg}')
 
-        if type(message) is str:
-            writer.write(message)
-        elif type(message) is tuple:
-            writer.iac(message[0], message[1])
         await writer.drain()
 
 

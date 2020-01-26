@@ -22,8 +22,9 @@ from uuid import uuid4
 from telnetlib3 import WILL, WONT, ECHO
 
 # Project
-from message_queues import messages_to_clients
-from message_queues import messages_to_game
+from messages import Message
+from messages import messages_to_clients
+from messages import messages_to_game
 import clients
 from keys import WS_SECRET
 
@@ -160,7 +161,7 @@ async def ws_read(websocket_, game_connection):
             message = msg["payload"]["message"]
             if session in clients.PlayerConnection.connections:
                 log.debug(f"Message Received confirmation:\n{msg}")
-                await messages_to_clients[session].put(message)
+                await messages_to_clients[session].put(Message(message, "IO"))
             continue
 
         if msg["event"] == "heartbeat":
@@ -186,7 +187,7 @@ async def ws_read(websocket_, game_connection):
             if session in clients.PlayerConnection.connections:
                 log.debug(f'{msg["event"]} received for {player}@{session}')
                 clients.PlayerConnection.connections[session].state["connected"] = False
-                await messages_to_clients[session].put(message)
+                await messages_to_clients[session].put(Message(message, "IO"))
             continue
 
         if msg["event"] == "player/session command":
@@ -200,7 +201,7 @@ async def ws_read(websocket_, game_connection):
                         message = (WILL, ECHO)
                     else:
                         continue
-                    await messages_to_clients[session].put(message)
+                    await messages_to_clients[session].put(Message(message, "COMMAND-TELNET"))
             continue
 
         if msg["event"] == "game/softboot":
@@ -216,7 +217,8 @@ async def ws_write(websocket_, game_connection):
         Await for the messages_to_game Queue to have a message for the game.
     """
     while game_connection.state["connected"]:
-        message = await messages_to_game.get()
+        msg_obj = await messages_to_game.get()
+        message = msg_obj.msg
 
         log.debug(f"ws_write sending to game : {message}")
 
