@@ -90,6 +90,7 @@ async def ws_heartbeat(websocket_, game_connection):
         }
 
         log.info(msg)
+
         await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
         await asyncio.sleep(10)
 
@@ -216,7 +217,9 @@ async def ws_write(websocket_, game_connection):
     """
     while game_connection.state["connected"]:
         message = await messages_to_game.get()
+
         log.debug(f"ws_write sending to game : {message}")
+
         await websocket_.send(message)
 
 

@@ -103,6 +103,7 @@ class PlayerConnection(object):
             log.debug(f"Deleting connection {connection.uuid} from connections")
             cls.connections.pop(connection.uuid)
             messages_to_clients.pop(connection.uuid)
+
             await connection.notify_disconnected()
 
         else:
@@ -123,6 +124,7 @@ async def client_read(reader, connection):
     """
     while connection.state["connected"]:
         inp = await reader.readline()
+
         if not inp:  # This is an EOF.  Hard disconnect.
             connection.state["connected"] = False
             return
@@ -151,6 +153,7 @@ async def client_write(writer, connection):
     """
     while connection.state["connected"]:
         message = await messages_to_clients[connection.uuid].get()
+
         if type(message) is str:
             writer.write(message)
         elif type(message) is tuple:
@@ -189,6 +192,7 @@ async def client_handler(*args):
         writer.iac(WONT, ECHO)
 
     connection = PlayerConnection(addr, port, conn_type)
+
     await connection.register_client(connection)
 
     tasks = [
