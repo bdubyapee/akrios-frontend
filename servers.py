@@ -69,8 +69,6 @@ class GameConnection(object):
 
 async def ws_heartbeat(websocket_, game_connection):
     """
-        Utilized in the ws_handler coroutine.
-
         Create a JSON heartbeat payload, create the send task, then await a 10 second sleep.
         This effectively sends a heartbeat to the game engine every 10 seconds.
     """

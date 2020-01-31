@@ -65,7 +65,7 @@ async def shutdown(signal_, loop_):
 def handle_exception_generic(loop_, context):
     msg = context.get("exception", context["message"])
     log.warning(f"Caught exception: {msg}")
-    log.info(f"Current Task is: {asyncio.current_task().get_name()}")
+    log.warning(f"Caught in task: {asyncio.current_task().get_name()}")
 
 
 if __name__ == "__main__":

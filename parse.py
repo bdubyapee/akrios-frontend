@@ -38,7 +38,7 @@ async def softboot_game(wait_time):
 
 
 async def msg_heartbeat(msg):
-    log.info(f"Heartbeat received from game at: {time.time()}")
+    log.debug(f"Heartbeat received from game at: {time.time()}")
 
 
 async def msg_players_output(msg):

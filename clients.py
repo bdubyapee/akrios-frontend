@@ -195,7 +195,7 @@ async def client_handler(*args):
         addr, port = writer.get_extra_info("peername")
 
         # Need to work on slightly better telnet support for regular old telnet clients.
-        # Everything so far works great in Mudlet.  Just saying.
+        # Everything so far works great in Mudlet.  Just saying....
         # We sent an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
         writer.iac(WONT, ECHO)
 
