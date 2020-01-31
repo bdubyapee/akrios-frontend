@@ -100,8 +100,6 @@ class PlayerConnection(object):
         """
             Upon a new client connection, we register it to the PlayerConnection Class.
         """
-        log.info(f"Adding client {connection.uuid} to connections")
-
         cls.connections[connection.uuid] = connection
         messages_to_clients[connection.uuid] = asyncio.Queue()
 
@@ -113,7 +111,6 @@ class PlayerConnection(object):
             Upon client disconnect/quit, we unregister it from the PlayerConnection Class.
         """
         if connection.uuid in cls.connections:
-            log.info(f"Deleting connection {connection.uuid} from connections")
             cls.connections.pop(connection.uuid)
             messages_to_clients.pop(connection.uuid)
 
