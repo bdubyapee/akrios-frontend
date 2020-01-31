@@ -64,31 +64,43 @@ class PlayerConnection(object):
             Create JSON message to notify the game engine of a new client connection.
             Put this message into the messages_to_game asyncio.Queue().
         """
-        payload = {"uuid": self.uuid, "addr": self.addr, "port": self.port}
-        msg = {"event": "connection/connected", "secret": WS_SECRET, "payload": payload}
+        payload = {
+            "uuid": self.uuid,
+            "addr": self.addr,
+            "port": self.port
+        }
+        msg = {
+            "event": "connection/connected",
+            "secret": WS_SECRET,
+            "payload": payload
+        }
 
-        await messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
+        asyncio.create_task(messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO")))
 
     async def notify_disconnected(self):
         """
             Create JSON Payload to notify the game engine of a client disconnect.
             Put this message into the messages_to_game asyncio.Queue().
         """
-        payload = {"uuid": self.uuid, "addr": self.addr, "port": self.port}
+        payload = {
+            "uuid": self.uuid,
+            "addr": self.addr,
+            "port": self.port
+        }
         msg = {
             "event": "connection/disconnected",
             "secret": WS_SECRET,
-            "payload": payload,
+            "payload": payload
         }
 
-        await messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
+        asyncio.create_task(messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO")))
 
     @classmethod
     async def register_client(cls, connection):
         """
             Upon a new client connection, we register it to the PlayerConnection Class.
         """
-        log.debug(f"Adding client {connection.uuid} to connections")
+        log.info(f"Adding client {connection.uuid} to connections")
 
         cls.connections[connection.uuid] = connection
         messages_to_clients[connection.uuid] = asyncio.Queue()
@@ -101,16 +113,11 @@ class PlayerConnection(object):
             Upon client disconnect/quit, we unregister it from the PlayerConnection Class.
         """
         if connection.uuid in cls.connections:
-            log.debug(f"Deleting connection {connection.uuid} from connections")
+            log.info(f"Deleting connection {connection.uuid} from connections")
             cls.connections.pop(connection.uuid)
             messages_to_clients.pop(connection.uuid)
 
             await connection.notify_disconnected()
-
-        else:
-            log.warning(
-                f"unregister_connection : {connection.uuid} not in connections!"
-            )
 
 
 async def client_read(reader, connection):
@@ -130,17 +137,19 @@ async def client_read(reader, connection):
             connection.state["connected"] = False
             return
 
-        log.debug(f"Received Input of: {inp}")
-
         payload = {
             "uuid": connection.uuid,
             "addr": connection.addr,
             "port": connection.port,
-            "msg": inp.strip(),
+            "msg": inp.strip()
         }
-        msg = {"event": "player/input", "secret": WS_SECRET, "payload": payload}
+        msg = {
+            "event": "player/input",
+            "secret": WS_SECRET,
+            "payload": payload
+        }
 
-        await messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
+        asyncio.create_task(messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO")))
 
 
 async def client_write(writer, connection):
@@ -156,10 +165,8 @@ async def client_write(writer, connection):
             writer.write(msg_obj.msg)
         elif msg_obj.is_command_telnet:
             writer.iac(msg_obj.msg[0], msg_obj.msg[1])
-        else:
-            log.warning(f'Trying to write message to client that is not IO or COMMAND-TYPE\n\r{msg_obj.msg}')
 
-        await writer.drain()
+        asyncio.create_task(writer.drain())
 
 
 async def client_handler(*args):

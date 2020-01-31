@@ -17,7 +17,9 @@ import asyncio
 
 # Project
 
+# There is only one game connection, create a asyncio.Queue to hold messages for the game from clients.
 messages_to_game = asyncio.Queue()
+# There will be multiple clients connected.  uuid of client will be key, values will be an asyncio.Queue.
 messages_to_clients = {}
 
 

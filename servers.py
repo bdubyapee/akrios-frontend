@@ -14,19 +14,15 @@
 import asyncio
 import logging
 import json
-import subprocess
-import time
 from uuid import uuid4
 
 # Third Party
-from telnetlib3 import WILL, WONT, ECHO
 
 # Project
-from messages import Message
-from messages import messages_to_clients
 from messages import messages_to_game
 import clients
 from keys import WS_SECRET
+import parse
 
 log = logging.getLogger(__name__)
 
@@ -59,7 +55,6 @@ class GameConnection(object):
         """
             Upon a new game connection, we register it to the GameConnection Class.
         """
-        log.debug(f"Adding game {game_connection.uuid} to connections")
         cls.connections[game_connection.uuid] = game_connection
 
     @classmethod
@@ -70,17 +65,13 @@ class GameConnection(object):
         if game_connection.uuid in cls.connections:
             log.debug(f"Deleting game {game_connection.uuid} from connections")
             cls.connections.pop(game_connection.uuid)
-        else:
-            log.warning(
-                f"Failed to delete {game_connection.uuid} from game connections"
-            )
 
 
 async def ws_heartbeat(websocket_, game_connection):
     """
         Utilized in the ws_handler coroutine.
 
-        Create a JSON heartbeat payload, await that to send, then await a 10 second sleep.
+        Create a JSON heartbeat payload, create the send task, then await a 10 second sleep.
         This effectively sends a heartbeat to the game engine every 10 seconds.
     """
     while game_connection.state["connected"]:
@@ -92,137 +83,58 @@ async def ws_heartbeat(websocket_, game_connection):
 
         log.info(msg)
 
-        await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
+        asyncio.create_task(websocket_.send(json.dumps(msg, sort_keys=True, indent=4)))
         await asyncio.sleep(10)
-
-
-async def softboot_game(wait_time):
-    """
-        Utilized in the ws_read coroutine.
-
-        The game has notified that it will shutdown.  We take the wait_time, sleep that time and then
-        launch the game.
-    """
-    await asyncio.sleep(wait_time)
-    subprocess.Popen(['python3.8', '/home/bwp/PycharmProjects/akriosmud/src/akrios.py', '&'])
 
 
 async def softboot_connection_list(websocket_):
     """
-        Utilized in the WebSocket handler: ws_handler
-
         When a game connects to this front end, part of the handler's responsibility
         is to verify if there are current connections to this front end.  If so then we may
-        surmise that the game/FE have performed a "soft boot", or the game was restarted.
+        assume that the game/FE have performed a "soft boot", or the game was restarted.
 
         Create a JSON message to the game to indicate the session ID to player name mapping
         so that the player(s) may be logged back in automatically.
     """
-    sessions = dict()
-    for k, v in clients.PlayerConnection.connections.items():
-        sessions[k] = [v.name, v.addr, v.port]
+    sessions = {}
+    for session_id, client in clients.PlayerConnection.connections.items():
+        sessions[session_id] = [client.name, client.addr, client.port]
+
     payload = {"players": sessions}
-    msg = {"event": "game/load_players", "secret": WS_SECRET, "payload": payload}
+    msg = {
+        "event": "game/load_players",
+        "secret": WS_SECRET,
+        "payload": payload
+    }
 
     await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
 
 
 async def ws_read(websocket_, game_connection):
     """
-        Utilized in the WebSocket handler: ws_handler
-
-        We track time between heartbeat acknowledgements from the game.
-
         We want this coroutine to run while the game is connected, so we begin with a while loop.
-        We first await control back to the main loop until we have received some data from the gam.
-            Mark the connection to disconnected and break out if a disconnect (EOF)
-            else we handle the message received from the game.
+        We first await control back to the main loop until we have received some data from the game.
+        Create task to parse / handle the message from the game engine.
     """
-    last_heartbeat_received = time.time()
-
     while game_connection.state["connected"]:
-        inp = await websocket_.recv()
+        data = await websocket_.recv()
 
-        if not inp:  # This is an EOF.   Hard disconnect.
-            game_connection.state["connected"] = False
-            return
-
-        log.debug(f"Websocket Received: {inp}")
-        msg = json.loads(inp)
-
-        if "secret" not in msg.keys() or msg["secret"] != WS_SECRET:
-            log.warning(
-                "Breaking out of ws_handler as no secret in message header, or wrong key."
-            )
-            break
-
-        if msg["event"] == "players/output":
-            session = msg["payload"]["uuid"]
-            message = msg["payload"]["message"]
-            if session in clients.PlayerConnection.connections:
-                log.debug(f"Message Received confirmation:\n{msg}")
-                await messages_to_clients[session].put(Message(message, "IO"))
-            continue
-
-        if msg["event"] == "heartbeat":
-            delta = time.time() - last_heartbeat_received
-            last_heartbeat_received = time.time()
-            log.debug(
-                f"Received heartbeat response from game. Last Response {delta:.6} seconds ago."
-            )
-            continue
-
-        if msg["event"] == "players/sign-in":
-            player = msg["payload"]["name"]
-            session = msg["payload"]["uuid"]
-            if session in clients.PlayerConnection.connections:
-                log.debug(f"players/sign-in received for {player}@{session}")
-                clients.PlayerConnection.connections[session].name = player
-            continue
-
-        if msg["event"] == "players/sign-out" or msg["event"] == "players/login-failed":
-            player = msg["payload"]["name"]
-            message = msg["payload"]["message"]
-            session = msg["payload"]["uuid"]
-            if session in clients.PlayerConnection.connections:
-                log.debug(f'{msg["event"]} received for {player}@{session}')
-                clients.PlayerConnection.connections[session].state["connected"] = False
-                await messages_to_clients[session].put(Message(message, "IO"))
-            continue
-
-        if msg["event"] == "player/session command":
-            session = msg["payload"]["uuid"]
-            command = msg["payload"]["command"]
-            if session in clients.PlayerConnection.connections:
-                if clients.PlayerConnection.connections[session].conn_type == "telnet":
-                    if command == "do echo":
-                        message = (WONT, ECHO)
-                    elif command == "dont echo":
-                        message = (WILL, ECHO)
-                    else:
-                        continue
-                    await messages_to_clients[session].put(Message(message, "COMMAND-TELNET"))
-            continue
-
-        if msg["event"] == "game/softboot":
-            log.info("Received game/softboot event in servers receiver.")
-            await softboot_game(msg["payload"]["wait_time"])
+        if data:
+            asyncio.create_task(parse.message_parse(data))
+        else:
+            game_connection.state["connected"] = False  # EOF Disconnect
 
 
 async def ws_write(websocket_, game_connection):
     """
-        Utilized in the WebSocket handler: ws_handler
-
         We want this coroutine to run while the game is connected, so we begin with a while loop.
         Await for the messages_to_game Queue to have a message for the game.
+        Create a task to send that message to the game engine.
     """
     while game_connection.state["connected"]:
         msg_obj = await messages_to_game.get()
-        message = msg_obj.msg
 
-        log.debug(f"ws_write sending to game : {message}")
-
-        await websocket_.send(message)
+        asyncio.create_task(websocket_.send(msg_obj.msg))
 
 
 async def ws_handler(websocket_, path):
