@@ -60,6 +60,10 @@ async def msg_players_output(msg: Dict[str, Dict[str, str]]) -> None:
 
 
 async def msg_players_sign_in(msg: Dict[str, Dict[str, str]]) -> None:
+    """
+        We have received a player sign-in from the game engine.  We assign that authenticated name
+        to the session.  Use for tracking during softboots.
+    """
     player = msg["payload"]["name"]
     session = msg["payload"]["uuid"]
     if session in clients.PlayerConnection.connections:
@@ -68,6 +72,10 @@ async def msg_players_sign_in(msg: Dict[str, Dict[str, str]]) -> None:
 
 
 async def msg_players_sign_out(msg: Dict[str, Dict[str, str]]) -> None:
+    """
+        We have received a player sign-out message from the engine.  This indicates a player has quit
+        the game.  We change player session state to disconnected to end their session.
+    """
     player = msg["payload"]["name"]
     message = msg["payload"]["message"]
     session = msg["payload"]["uuid"]
@@ -78,6 +86,13 @@ async def msg_players_sign_out(msg: Dict[str, Dict[str, str]]) -> None:
 
 
 async def msg_player_session_command(msg: Dict[str, Dict[str, str]]) -> None:
+    """
+        Any non standard IO for a player session.
+
+        Currently we use this non-IO command to indicate to the player telnet client that it should
+        or shouldn't echo locally at specific times (password entry).  Will expand in the future for
+        SSH commands and Web Client.
+    """
     session = msg["payload"]["uuid"]
     command = msg["payload"]["command"]
     if session in clients.PlayerConnection.connections:
