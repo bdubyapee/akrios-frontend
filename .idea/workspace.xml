@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8422f22f-cbea-42b5-9fa7-6f1037af79a1" name="Default Changelist" comment="Better task management / exception handling.">
+    <list default="true" id="8422f22f-cbea-42b5-9fa7-6f1037af79a1" name="Default Changelist" comment="">
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/@plugins_snapshot.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_ast.data.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_ast.meta.json" afterDir="false" />
@@ -119,6 +119,8 @@
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/keys.meta.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/logging/__init__.data.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/logging/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/main.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/main.meta.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/messages.data.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/messages.meta.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/mmap.data.json" afterDir="false" />
@@ -159,6 +161,8 @@
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/re.meta.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/selectors.data.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/selectors.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/servers.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/servers.meta.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/signal.data.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/signal.meta.json" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/socket.data.json" afterDir="false" />
@@ -229,7 +233,8 @@
       <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/zlib.meta.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/dictionaries/bwp.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/bwp.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/parse.py" beforeDir="false" afterPath="$PROJECT_DIR$/parse.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/clients.py" beforeDir="false" afterPath="$PROJECT_DIR$/clients.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/servers.py" beforeDir="false" afterPath="$PROJECT_DIR$/servers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -635,13 +640,25 @@
       <option name="project" value="LOCAL" />
       <updated>1580598046180</updated>
     </task>
-    <option name="localTasksCounter" value="48" />
+    <task id="LOCAL-00048" summary="mypy clean - Ran Black again.">
+      <created>1580598471162</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1580598471162</updated>
+    </task>
+    <task id="LOCAL-00049" summary="Black at longer lines -l 120">
+      <created>1580598532322</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1580598532322</updated>
+    </task>
+    <option name="localTasksCounter" value="50" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Back out of changes trying for secure telnet to focus on game engine updates." />
-    <MESSAGE value="Additional tweak to back out of secure telnet for now." />
     <MESSAGE value="Refactor file names.  Tweaked some doc strings." />
     <MESSAGE value="De-Indented read structure slightly." />
     <MESSAGE value="First draft of game &quot;softboot&quot; capability." />
@@ -665,17 +682,19 @@
     <MESSAGE value="Added additional comments." />
     <MESSAGE value="Ran through Black code formatter." />
     <MESSAGE value="Misc cleanup and more type hinting." />
-    <option name="LAST_COMMIT_MESSAGE" value="Misc cleanup and more type hinting." />
+    <MESSAGE value="mypy clean - Ran Black again." />
+    <MESSAGE value="Black at longer lines -l 120" />
+    <option name="LAST_COMMIT_MESSAGE" value="Black at longer lines -l 120" />
   </component>
   <component name="WindowStateProjectService">
     <state x="949" y="391" width="510" height="485" key="#com.intellij.tools.ToolEditorDialog" timestamp="1580075570071">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="949" y="391" width="510" height="485" key="#com.intellij.tools.ToolEditorDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1580075570071" />
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1580598471034">
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1580598532123">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1580598471034" />
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1580598532123" />
     <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1580077371743">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -704,10 +723,10 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state x="698" y="195" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1580075570970" />
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580598472336">
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580598537342">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1580598472336" />
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1580598537342" />
     <state x="657" y="195" width="662" height="715" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1578259411782">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
