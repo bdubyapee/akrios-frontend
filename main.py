@@ -15,6 +15,10 @@
     this front end to run a new instance.  We provide the client session -> player name details to the
     new game engine instance which automatically logs in the players.
 
+    NOTE: keys.py and the akrios_ca are included in the project for example purposes. No live game is running
+          using these keys.  Update keys.py and create a new key, instructions below, if you intend to use
+          this front end on a live server.
+
     SSH Details
     ! Create an akrios_ca to use for the SSH portion of the front end.  You can use the command below to
     ! generate the file. Use a passphrase during ca generation, place it in keys.py.
