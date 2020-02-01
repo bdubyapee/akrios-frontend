@@ -14,10 +14,7 @@
 import asyncio
 
 # Standard Library Typing
-from typing import (
-    ByteString,
-    Dict
-)
+from typing import ByteString, Dict
 
 # Third Party
 
@@ -31,7 +28,7 @@ messages_to_clients: Dict[str, asyncio.Queue] = {}
 
 
 class Message(object):
-    def __init__(self, msg_type: str, msg: str = "", command: ByteString = b'') -> None:
+    def __init__(self, msg_type: str, msg: str = "", command: ByteString = b"") -> None:
         self.msg = msg
         self.command = command
         if msg_type in ["IO", "COMMAND-TELNET", "COMMAND-SSH"]:

@@ -17,12 +17,7 @@ import json
 from uuid import uuid4
 
 # Standard Library Typing
-from typing import (
-    Any,
-    ClassVar,
-    Dict,
-    List
-)
+from typing import Any, ClassVar, Dict, List
 
 # Third Party
 
@@ -109,7 +104,7 @@ async def softboot_connection_list(websocket_) -> None:
     msg: Dict[str, Any] = {
         "event": "game/load_players",
         "secret": WS_SECRET,
-        "payload": payload
+        "payload": payload,
     }
 
     await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
@@ -160,16 +155,13 @@ async def ws_handler(websocket_, path: str) -> None:
 
     tasks: List[asyncio.Task] = [
         asyncio.create_task(
-            ws_heartbeat(websocket_, game_connection),
-            name=f"WS: {game_connection.uuid} hb",
+            ws_heartbeat(websocket_, game_connection), name=f"WS: {game_connection.uuid} hb",
         ),
         asyncio.create_task(
-            ws_read(websocket_, game_connection),
-            name=f"WS: {game_connection.uuid} read",
+            ws_read(websocket_, game_connection), name=f"WS: {game_connection.uuid} read",
         ),
         asyncio.create_task(
-            ws_write(websocket_, game_connection),
-            name=f"WS: {game_connection.uuid} write",
+            ws_write(websocket_, game_connection), name=f"WS: {game_connection.uuid} write",
         ),
     ]
 

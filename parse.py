@@ -17,10 +17,7 @@ import subprocess
 import time
 
 # Standard Library Typing
-from typing import (
-    Callable,
-    Dict
-)
+from typing import Callable, Dict
 
 # Third Party
 from telnetlib3 import WILL, WONT, ECHO  # type: ignore
@@ -40,7 +37,7 @@ async def softboot_game(wait_time: int) -> None:
         launch the game.
     """
     await asyncio.sleep(wait_time)
-    subprocess.Popen(['python3.8', '/home/bwp/PycharmProjects/akriosmud/src/akrios.py', '&'])
+    subprocess.Popen(["python3.8", "/home/bwp/PycharmProjects/akriosmud/src/akrios.py", "&"])
 
 
 async def msg_heartbeat(msg: Dict[str, Dict[str, str]]) -> None:
@@ -103,7 +100,9 @@ async def msg_player_session_command(msg: Dict[str, Dict[str, str]]) -> None:
                 message = WILL + ECHO
             else:
                 message = WONT + ECHO
-            asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", "", message)))
+            asyncio.create_task(
+                messages_to_clients[session].put(Message("COMMAND-TELNET", "", message))
+            )
 
 
 async def msg_game_softboot(msg: Dict[str, Dict[str, str]]) -> None:

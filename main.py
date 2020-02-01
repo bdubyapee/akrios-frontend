@@ -28,12 +28,7 @@ import logging
 import signal
 
 # Standard Library Typing
-from typing import (
-    Awaitable,
-    Dict,
-    List,
-    Tuple
-)
+from typing import Awaitable, Dict, List, Tuple
 
 # Third Party
 import asyncssh  # type: ignore
@@ -81,9 +76,7 @@ if __name__ == "__main__":
 
     signals: Tuple = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
     for sig in signals:
-        loop.add_signal_handler(
-            sig, lambda s=sig: asyncio.create_task(shutdown(s, loop))
-        )
+        loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown(s, loop)))
 
     loop.set_exception_handler(handle_exception_generic)
 
