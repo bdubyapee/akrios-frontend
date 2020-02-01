@@ -17,7 +17,7 @@ import subprocess
 import time
 
 # Standard Library Typing
-from typing import Callable, Dict
+from typing import Callable, Dict, Union
 
 # Third Party
 from telnetlib3 import WILL, WONT, ECHO  # type: ignore
@@ -99,9 +99,7 @@ async def msg_player_session_command(msg: Dict[str, Dict[str, str]]) -> None:
                 message = WILL + ECHO
             else:
                 message = WONT + ECHO
-            asyncio.create_task(
-                messages_to_clients[session].put(Message("COMMAND-TELNET", "", message))
-            )
+            asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", "", message)))
 
 
 async def msg_game_softboot(msg: Dict[str, Dict[str, str]]) -> None:
@@ -119,7 +117,7 @@ messages: Dict[str, Callable] = {
 }
 
 
-async def message_parse(inp: str):
+async def message_parse(inp: Union[str, bytes]):
     msg: Dict[str, Dict[str, str]] = json.loads(inp)
 
     if "secret" not in msg.keys() or msg["secret"] != WS_SECRET:

@@ -20,6 +20,7 @@ from uuid import uuid4
 from typing import Any, Dict, List
 
 # Third Party
+from websockets import WebSocketServerProtocol
 
 # Project
 from messages import Message, messages_to_game
@@ -38,6 +39,7 @@ class GameConnection(object):
             self.state is the current state of the game connection
             self.uuid is a str(uuid.uuid4()) used for unique game connection session tracking
     """
+
     def __init__(self) -> None:
         self.state: Dict[str, bool] = {"connected": True}
         self.uuid: str = str(uuid4())
@@ -62,7 +64,7 @@ def unregister_client(game_connection: GameConnection) -> None:
         connections.pop(game_connection.uuid)
 
 
-async def ws_heartbeat(websocket_, game_connection: GameConnection) -> None:
+async def ws_heartbeat(websocket_: WebSocketServerProtocol, game_connection: GameConnection) -> None:
     """
         Create a JSON heartbeat payload, create the send task, then await a 10 second sleep.
         This effectively sends a heartbeat to the game engine every 10 seconds.
@@ -80,7 +82,7 @@ async def ws_heartbeat(websocket_, game_connection: GameConnection) -> None:
         await asyncio.sleep(10)
 
 
-async def softboot_connection_list(websocket_) -> None:
+async def softboot_connection_list(websocket_: WebSocketServerProtocol) -> None:
     """
         When a game connects to this front end, part of the handler's responsibility
         is to verify if there are current connections to this front end.  If so then we may
@@ -103,7 +105,7 @@ async def softboot_connection_list(websocket_) -> None:
     await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
 
 
-async def ws_read(websocket_, game_connection: GameConnection) -> None:
+async def ws_read(websocket_: WebSocketServerProtocol, game_connection: GameConnection) -> None:
     """
         We want this coroutine to run while the game is connected, so we begin with a while loop.
         We first await control back to the main loop until we have received some data from the game.
@@ -116,7 +118,7 @@ async def ws_read(websocket_, game_connection: GameConnection) -> None:
             game_connection.state["connected"] = False  # EOF Disconnect
 
 
-async def ws_write(websocket_, game_connection: GameConnection) -> None:
+async def ws_write(websocket_: WebSocketServerProtocol, game_connection: GameConnection) -> None:
     """
         We want this coroutine to run while the game is connected, so we begin with a while loop.
         Await for the messages_to_game Queue to have a message for the game.
@@ -128,7 +130,7 @@ async def ws_write(websocket_, game_connection: GameConnection) -> None:
         asyncio.create_task(websocket_.send(msg_obj.msg))
 
 
-async def ws_handler(websocket_, path: str) -> None:
+async def ws_handler(websocket_: WebSocketServerProtocol, path: str) -> None:
     """
         This is a generic websocket handler/"shell".  It is called on new connections of websocket
         clients, which would be the game connecting to this front end.
@@ -147,13 +149,16 @@ async def ws_handler(websocket_, path: str) -> None:
 
     tasks: List[asyncio.Task] = [
         asyncio.create_task(
-            ws_heartbeat(websocket_, game_connection), name=f"WS: {game_connection.uuid} hb",
+            ws_heartbeat(websocket_, game_connection),
+            name=f"WS: {game_connection.uuid} hb",
         ),
         asyncio.create_task(
-            ws_read(websocket_, game_connection), name=f"WS: {game_connection.uuid} read",
+            ws_read(websocket_, game_connection),
+            name=f"WS: {game_connection.uuid} read",
         ),
         asyncio.create_task(
-            ws_write(websocket_, game_connection), name=f"WS: {game_connection.uuid} write",
+            ws_write(websocket_, game_connection),
+            name=f"WS: {game_connection.uuid} write",
         ),
     ]
 

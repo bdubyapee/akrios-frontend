@@ -43,6 +43,7 @@ class PlayerConnection(object):
                 Currently used for "softboot" capability
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
+
     def __init__(self, addr: str, port: str, conn_type: str) -> None:
         self.addr: str = addr
         self.port: str = port
@@ -68,7 +69,9 @@ class PlayerConnection(object):
         }
 
         asyncio.create_task(
-            messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
+            messages_to_game.put(
+                Message(json.dumps(msg, sort_keys=True, indent=4), "IO")
+            )
         )
 
     async def notify_disconnected(self) -> None:
@@ -88,7 +91,9 @@ class PlayerConnection(object):
         }
 
         asyncio.create_task(
-            messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
+            messages_to_game.put(
+                Message(json.dumps(msg, sort_keys=True, indent=4), "IO")
+            )
         )
 
 
@@ -173,7 +178,9 @@ async def client_read(reader, connection) -> None:
         }
 
         asyncio.create_task(
-            messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
+            messages_to_game.put(
+                Message(json.dumps(msg, sort_keys=True, indent=4), "IO")
+            )
         )
 
 
@@ -229,8 +236,12 @@ async def client_handler(*args) -> None:
     await register_client(connection)
 
     tasks: List[asyncio.Task] = [
-        asyncio.create_task(client_read(reader, connection), name=f"{connection.uuid} read"),
-        asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} write"),
+        asyncio.create_task(
+            client_read(reader, connection), name=f"{connection.uuid} read"
+        ),
+        asyncio.create_task(
+            client_write(writer, connection), name=f"{connection.uuid} write"
+        ),
     ]
 
     asyncio.current_task().set_name(f"{connection.uuid} handler")  # type: ignore
