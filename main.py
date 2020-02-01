@@ -84,9 +84,9 @@ if __name__ == "__main__":
     ssh_port: int = 7979
     ws_port: int = 8989
 
-    log.info(f"Creating Telnet Listener on port {telnet_port}")
-    log.info(f"Creating SSH Listener on port {ssh_port}")
-    log.info(f"Creating Websocket Listener on port {ws_port}")
+    log.info(f"Creating client Telnet listener on port {telnet_port}")
+    log.info(f"Creating client SSH listener on port {ssh_port}")
+    log.info(f"Creating game engine websocket listener on port {ws_port}")
     all_servers: List[Awaitable] = [
         telnetlib3.create_server(
             port=telnet_port,
@@ -113,10 +113,7 @@ if __name__ == "__main__":
     for each_server in all_servers:
         loop.run_until_complete(each_server)
 
-    try:
-        loop.run_forever()
-    except Exception as err:
-        log.warning(f"Error in main loop: {err}")
+    loop.run_forever()
 
     log.info("Front end shut down.")
     loop.close()

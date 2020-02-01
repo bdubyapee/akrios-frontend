@@ -2,7 +2,7 @@
 # Project: akrios-fe
 # Filename: clients.py
 #
-# File Description: Client connections via Telnet and SSh.
+# File Description: Client connections via Telnet and SSH.
 #
 # By: Jubelo
 """
@@ -17,16 +17,14 @@ import logging
 from uuid import uuid4
 
 # Standard Library Typing
-from typing import Any, ClassVar, Dict, List
+from typing import Any, Dict, List
 
 # Third Party
 import asyncssh  # type: ignore
 from telnetlib3 import WONT, ECHO  # type: ignore
 
 # Project
-from messages import Message
-from messages import messages_to_clients
-from messages import messages_to_game
+from messages import Message, messages_to_clients, messages_to_game
 from keys import WS_SECRET
 
 log: logging.Logger = logging.getLogger(__name__)
@@ -34,13 +32,7 @@ log: logging.Logger = logging.getLogger(__name__)
 
 class PlayerConnection(object):
     """
-        A player connection tracking class.  Each connection when created in async handle_client will
-        instantiate this class to a local scope variable.
-
-        Class variables:
-            connections(dict): uuid -> PlayerConnection instance
-               key: Unique Client UUID
-               value: an instance of PlayerConnection
+        Each connection when created in async handle_client will instance this.
 
         Instance variables:
             self.addr is the IP address portion of the client
@@ -51,16 +43,13 @@ class PlayerConnection(object):
                 Currently used for "softboot" capability
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
-
-    connections: ClassVar[Dict[str, Any]] = {}
-
     def __init__(self, addr: str, port: str, conn_type: str) -> None:
         self.addr: str = addr
         self.port: str = port
         self.conn_type: str = conn_type
         self.state: Dict[str, bool] = {"connected": True, "logged in": False}
         self.name: str = ""
-        self.uuid = str(uuid4())
+        self.uuid: str = str(uuid4())
 
     async def notify_connected(self) -> None:
         """
@@ -102,26 +91,56 @@ class PlayerConnection(object):
             messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO"))
         )
 
-    @classmethod
-    async def register_client(cls, connection) -> None:
-        """
-            Upon a new client connection, we register it to the PlayerConnection Class.
-        """
-        cls.connections[connection.uuid] = connection
-        messages_to_clients[connection.uuid] = asyncio.Queue()
 
-        await connection.notify_connected()
+class MySSHServer(asyncssh.SSHServer):
+    """
+    This class facilitates allowing SSH access in without requiring credentials.  The various methods
+    are configured to allow the "unauthenticated" access as well as some logging.
 
-    @classmethod
-    async def unregister_client(cls, connection) -> None:
-        """
-            Upon client disconnect/quit, we unregister it from the PlayerConnection Class.
-        """
-        if connection.uuid in cls.connections:
-            cls.connections.pop(connection.uuid)
-            messages_to_clients.pop(connection.uuid)
+    XXX Clean this up and document it.  Came from the asyncssh docs somewhere.
+    """
 
-            await connection.notify_disconnected()
+    def connection_made(self, conn):
+        log.info(f'SSH connection received from {conn.get_extra_info("peername")[0]}')
+
+    def connection_lost(self, exc):
+        if exc:
+            log.warning(f"SSH connection error: {str(exc)}")
+        else:
+            log.info("SSH connection closed.")
+
+    def begin_auth(self, username):
+        return False
+
+    def password_auth_supported(self):
+        return True
+
+    def validate_password(self, username, password):
+        return True
+
+
+connections: Dict[str, PlayerConnection] = {}
+
+
+async def register_client(connection: PlayerConnection) -> None:
+    """
+        Upon a new client connection, we register it to the connections dict.
+    """
+    connections[connection.uuid] = connection
+    messages_to_clients[connection.uuid] = asyncio.Queue()
+
+    await connection.notify_connected()
+
+
+async def unregister_client(connection: PlayerConnection) -> None:
+    """
+        Upon client disconnect/quit, we unregister it from the connections dict.
+    """
+    if connection.uuid in connections:
+        connections.pop(connection.uuid)
+        messages_to_clients.pop(connection.uuid)
+
+        await connection.notify_disconnected()
 
 
 async def client_read(reader, connection) -> None:
@@ -207,7 +226,7 @@ async def client_handler(*args) -> None:
 
     connection: PlayerConnection = PlayerConnection(addr, port, conn_type)
 
-    await connection.register_client(connection)
+    await register_client(connection)
 
     tasks: List[asyncio.Task] = [
         asyncio.create_task(client_read(reader, connection), name=f"{connection.uuid} read"),
@@ -221,7 +240,7 @@ async def client_handler(*args) -> None:
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
-    await connection.unregister_client(connection)
+    await unregister_client(connection)
 
     if conn_type == "ssh":
         process.close()
@@ -232,30 +251,3 @@ async def client_handler(*args) -> None:
 
     for each_task in rest:
         each_task.cancel()
-
-
-class MySSHServer(asyncssh.SSHServer):
-    """
-    This class facilitates allowing SSH access in without requiring credentials.  The various methods
-    are configured to allow the "unauthenticated" access as well as some logging.
-
-    XXX Clean this up and document it.  Came from the asyncssh docs somewhere.
-    """
-
-    def connection_made(self, conn):
-        log.info(f'SSH connection received from {conn.get_extra_info("peername")[0]}')
-
-    def connection_lost(self, exc):
-        if exc:
-            log.warning(f"SSH connection error: {str(exc)}")
-        else:
-            log.info("SSH connection closed.")
-
-    def begin_auth(self, username):
-        return False
-
-    def password_auth_supported(self):
-        return True
-
-    def validate_password(self, username, password):
-        return True

@@ -17,13 +17,12 @@ import json
 from uuid import uuid4
 
 # Standard Library Typing
-from typing import Any, ClassVar, Dict, List
+from typing import Any, Dict, List
 
 # Third Party
 
 # Project
-from messages import Message
-from messages import messages_to_game
+from messages import Message, messages_to_game
 import clients
 from keys import WS_SECRET
 import parse
@@ -33,40 +32,34 @@ log: logging.Logger = logging.getLogger(__name__)
 
 class GameConnection(object):
     """
-        A game connection tracking class.  Each connection when created in async ws_handler will
-        instantiate this class to a local variable.
-
-        Class variables:
-            connections(dict): uuid -> GameConnection instance
-               key: Unique game UUID
-               value: an instance of GameConnection
+        Each connection when created in async ws_handler will instance this class.
 
         Instance variables:
             self.state is the current state of the game connection
             self.uuid is a str(uuid.uuid4()) used for unique game connection session tracking
     """
-
-    connections: ClassVar[Dict[str, Any]] = {}
-
     def __init__(self) -> None:
         self.state: Dict[str, bool] = {"connected": True}
         self.uuid: str = str(uuid4())
 
-    @classmethod
-    def register_client(cls, game_connection) -> None:
-        """
-            Upon a new game connection, we register it to the GameConnection Class.
-        """
-        cls.connections[game_connection.uuid] = game_connection
 
-    @classmethod
-    def unregister_client(cls, game_connection) -> None:
-        """
-            Upon an existing game disconnecting, we unregister it.
-        """
-        if game_connection.uuid in cls.connections:
-            log.debug(f"Deleting game {game_connection.uuid} from connections")
-            cls.connections.pop(game_connection.uuid)
+connections: Dict[str, GameConnection] = {}
+
+
+def register_client(game_connection: GameConnection) -> None:
+    """
+        Upon a new game connection, we register it to the GameConnection Class.
+    """
+    connections[game_connection.uuid] = game_connection
+
+
+def unregister_client(game_connection: GameConnection) -> None:
+    """
+        Upon an existing game disconnecting, we unregister it.
+    """
+    if game_connection.uuid in connections:
+        log.debug(f"Deleting game {game_connection.uuid} from connections")
+        connections.pop(game_connection.uuid)
 
 
 async def ws_heartbeat(websocket_, game_connection: GameConnection) -> None:
@@ -97,7 +90,7 @@ async def softboot_connection_list(websocket_) -> None:
         so that the player(s) may be logged back in automatically.
     """
     sessions: Dict[str, List[str]] = {}
-    for session_id, client in clients.PlayerConnection.connections.items():
+    for session_id, client in clients.connections.items():
         sessions[session_id] = [client.name, client.addr, client.port]
 
     payload: Dict[str, Dict] = {"players": sessions}
@@ -117,9 +110,7 @@ async def ws_read(websocket_, game_connection: GameConnection) -> None:
         Create task to parse / handle the message from the game engine.
     """
     while game_connection.state["connected"]:
-        data: str = await websocket_.recv()
-
-        if data:
+        if data := await websocket_.recv():
             asyncio.create_task(parse.message_parse(data))
         else:
             game_connection.state["connected"] = False  # EOF Disconnect
@@ -148,8 +139,9 @@ async def ws_handler(websocket_, path: str) -> None:
         This coroutine will run while we have active coroutines associated with it.
 
     """
+    log.info(f"websocket_ type is: {type(websocket_)}")
     game_connection: GameConnection = GameConnection()
-    game_connection.register_client(game_connection)
+    register_client(game_connection)
 
     log.info(f"Received websocket connection from game.")
 
@@ -171,7 +163,7 @@ async def ws_handler(websocket_, path: str) -> None:
     # clients in clients.PlayerConnection.connections that the game has "softboot"ed or has
     # crashed and restarted.  Await a coroutine which informs the game of those client
     # details so that they can be automatically logged back in.
-    if clients.PlayerConnection.connections:
+    if clients.connections:
         await softboot_connection_list(websocket_)
 
     _, pending = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
@@ -183,5 +175,5 @@ async def ws_handler(websocket_, path: str) -> None:
         if game_connection.uuid in each_task.get_name():
             each_task.cancel()
 
-    game_connection.unregister_client(game_connection)
+    unregister_client(game_connection)
     log.info(f"Closing websocket")

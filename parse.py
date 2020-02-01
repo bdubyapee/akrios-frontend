@@ -23,8 +23,7 @@ from typing import Callable, Dict
 from telnetlib3 import WILL, WONT, ECHO  # type: ignore
 
 # Project
-from messages import Message
-from messages import messages_to_clients
+from messages import Message, messages_to_clients
 import clients
 from keys import WS_SECRET
 
@@ -52,7 +51,7 @@ async def msg_players_output(msg: Dict[str, Dict[str, str]]) -> None:
     """
     session = msg["payload"]["uuid"]
     message = msg["payload"]["message"]
-    if session in clients.PlayerConnection.connections:
+    if session in clients.connections:
         asyncio.create_task(messages_to_clients[session].put(Message("IO", message)))
 
 
@@ -63,9 +62,9 @@ async def msg_players_sign_in(msg: Dict[str, Dict[str, str]]) -> None:
     """
     player = msg["payload"]["name"]
     session = msg["payload"]["uuid"]
-    if session in clients.PlayerConnection.connections:
+    if session in clients.connections:
         log.debug(f"players/sign-in received for {player}@{session}")
-        clients.PlayerConnection.connections[session].name = player
+        clients.connections[session].name = player
 
 
 async def msg_players_sign_out(msg: Dict[str, Dict[str, str]]) -> None:
@@ -76,24 +75,24 @@ async def msg_players_sign_out(msg: Dict[str, Dict[str, str]]) -> None:
     player = msg["payload"]["name"]
     message = msg["payload"]["message"]
     session = msg["payload"]["uuid"]
-    if session in clients.PlayerConnection.connections:
+    if session in clients.connections:
         log.debug(f'{msg["event"]} received for {player}@{session}')
-        clients.PlayerConnection.connections[session].state["connected"] = False
+        clients.connections[session].state["connected"] = False
         asyncio.create_task(messages_to_clients[session].put(Message("IO", message)))
 
 
 async def msg_player_session_command(msg: Dict[str, Dict[str, str]]) -> None:
     """
-        Any non standard IO for a player session.
+        Any non standard I/O for a player session.
 
-        Currently we use this non-IO command to indicate to the player telnet client that it should
+        Currently we use this non-I/O command to indicate to the player telnet client that it should
         or shouldn't echo locally at specific times (password entry).  Will expand in the future for
         SSH commands and Web Client.
     """
     session = msg["payload"]["uuid"]
     command = msg["payload"]["command"]
-    if session in clients.PlayerConnection.connections:
-        if clients.PlayerConnection.connections[session].conn_type == "telnet":
+    if session in clients.connections:
+        if clients.connections[session].conn_type == "telnet":
             if command == "do echo":
                 message = WONT + ECHO
             elif command == "dont echo":
