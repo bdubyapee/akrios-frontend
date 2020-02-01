@@ -27,9 +27,17 @@ import asyncio
 import logging
 import signal
 
+# Standard Library Typing
+from typing import (
+    Awaitable,
+    Dict,
+    List,
+    Tuple
+)
+
 # Third Party
-import asyncssh
-import telnetlib3
+import asyncssh  # type: ignore
+import telnetlib3  # type: ignore
 import websockets
 
 # Project
@@ -40,10 +48,10 @@ import servers
 logging.basicConfig(
     format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
-log = logging.getLogger(__name__)
+log: logging.Logger = logging.getLogger(__name__)
 
 
-async def shutdown(signal_, loop_):
+async def shutdown(signal_: signal.Signals, loop_: asyncio.AbstractEventLoop) -> None:
     """
         shutdown coroutine utilized for cleanup on receipt of certain signals.
         Created and added as a handler to the loop in __main__
@@ -52,7 +60,7 @@ async def shutdown(signal_, loop_):
     """
     log.warning(f"Received exit signal {signal_.name}")
 
-    tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+    tasks: List[asyncio.Task] = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
     for each_task in tasks:
         each_task.cancel()
@@ -62,16 +70,16 @@ async def shutdown(signal_, loop_):
     loop_.stop()
 
 
-def handle_exception_generic(loop_, context):
-    msg = context.get("exception", context["message"])
+def handle_exception_generic(loop_: asyncio.AbstractEventLoop, context: Dict) -> None:
+    msg: str = context.get("exception", context["message"])
     log.warning(f"Caught exception: {msg}")
-    log.warning(f"Caught in task: {asyncio.current_task().get_name()}")
+    log.warning(f"Caught in task: {asyncio.current_task().get_name()}")  # type: ignore
 
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
+    loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
-    signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
+    signals: Tuple = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
     for sig in signals:
         loop.add_signal_handler(
             sig, lambda s=sig: asyncio.create_task(shutdown(s, loop))
@@ -79,14 +87,14 @@ if __name__ == "__main__":
 
     loop.set_exception_handler(handle_exception_generic)
 
-    telnet_port = 6969
-    ssh_port = 7979
-    ws_port = 8989
+    telnet_port: int = 6969
+    ssh_port: int = 7979
+    ws_port: int = 8989
 
     log.info(f"Creating Telnet Listener on port {telnet_port}")
     log.info(f"Creating SSH Listener on port {ssh_port}")
     log.info(f"Creating Websocket Listener on port {ws_port}")
-    all_servers = [
+    all_servers: List[Awaitable] = [
         telnetlib3.create_server(
             port=telnet_port,
             shell=clients.client_handler,

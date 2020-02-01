@@ -13,20 +13,27 @@
 # Standard Library
 import asyncio
 
+# Standard Library Typing
+from typing import (
+    ByteString,
+    Dict
+)
+
 # Third Party
 
 # Project
 
 # There is only one game connection, create a asyncio.Queue to hold messages to the game from clients.
-messages_to_game = asyncio.Queue()
+messages_to_game: asyncio.Queue = asyncio.Queue()
 
 # There will be multiple clients connected.  uuid of client will be key, values will be an asyncio.Queue.
-messages_to_clients = {}
+messages_to_clients: Dict[str, asyncio.Queue] = {}
 
 
 class Message(object):
-    def __init__(self, msg, msg_type):
+    def __init__(self, msg_type: str, msg: str = "", command: ByteString = b'') -> None:
         self.msg = msg
+        self.command = command
         if msg_type in ["IO", "COMMAND-TELNET", "COMMAND-SSH"]:
             self.msg_type = msg_type
 
