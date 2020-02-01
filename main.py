@@ -40,9 +40,7 @@ import clients
 from keys import passphrase as ca_phrase
 import servers
 
-logging.basicConfig(
-    format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 log: logging.Logger = logging.getLogger(__name__)
 
 
@@ -55,9 +53,7 @@ async def shutdown(signal_: signal.Signals, loop_: asyncio.AbstractEventLoop) ->
     """
     log.warning(f"Received exit signal {signal_.name}")
 
-    tasks: List[asyncio.Task] = [
-        t for t in asyncio.all_tasks() if t is not asyncio.current_task()
-    ]
+    tasks: List[asyncio.Task] = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
     for each_task in tasks:
         each_task.cancel()
@@ -78,9 +74,7 @@ if __name__ == "__main__":
 
     signals: Tuple = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
     for sig in signals:
-        loop.add_signal_handler(
-            sig, lambda s=sig: asyncio.create_task(shutdown(s, loop))
-        )
+        loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown(s, loop)))
 
     loop.set_exception_handler(handle_exception_generic)
 
@@ -93,11 +87,7 @@ if __name__ == "__main__":
     log.info(f"Creating game engine websocket listener on port {ws_port}")
     all_servers: List[Awaitable] = [
         telnetlib3.create_server(
-            port=telnet_port,
-            shell=clients.client_handler,
-            connect_maxwait=0.5,
-            timeout=3600,
-            log=log,
+            port=telnet_port, shell=clients.client_handler, connect_maxwait=0.5, timeout=3600, log=log,
         ),
         asyncssh.create_server(
             clients.MySSHServer,

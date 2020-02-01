@@ -148,18 +148,9 @@ async def ws_handler(websocket_: WebSocketServerProtocol, path: str) -> None:
     log.info(f"Received websocket connection from game.")
 
     tasks: List[asyncio.Task] = [
-        asyncio.create_task(
-            ws_heartbeat(websocket_, game_connection),
-            name=f"WS: {game_connection.uuid} hb",
-        ),
-        asyncio.create_task(
-            ws_read(websocket_, game_connection),
-            name=f"WS: {game_connection.uuid} read",
-        ),
-        asyncio.create_task(
-            ws_write(websocket_, game_connection),
-            name=f"WS: {game_connection.uuid} write",
-        ),
+        asyncio.create_task(ws_heartbeat(websocket_, game_connection), name=f"WS: {game_connection.uuid} hb",),
+        asyncio.create_task(ws_read(websocket_, game_connection), name=f"WS: {game_connection.uuid} read",),
+        asyncio.create_task(ws_write(websocket_, game_connection), name=f"WS: {game_connection.uuid} write",),
     ]
 
     asyncio.current_task().set_name(f"WS: {game_connection.uuid} handler")  # type: ignore

@@ -9,13 +9,16 @@
       <w>asyncssh</w>
       <w>coldboot</w>
       <w>coro</w>
+      <w>dont</w>
       <w>eachmsg</w>
       <w>jubelo</w>
       <w>levelname</w>
+      <w>mudlet</w>
       <w>passphrase</w>
       <w>peername</w>
       <w>skiddo</w>
       <w>softboot</w>
+      <w>softboots</w>
       <w>telnetlib</w>
       <w>telnetssh</w>
       <w>websocket</w>

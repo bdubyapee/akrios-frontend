@@ -1,10 +1,235 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8422f22f-cbea-42b5-9fa7-6f1037af79a1" name="Default Changelist" comment="Rollback for echo on Telnet">
+    <list default="true" id="8422f22f-cbea-42b5-9fa7-6f1037af79a1" name="Default Changelist" comment="Better task management / exception handling.">
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/@plugins_snapshot.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_ast.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_ast.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_importlib_modulespec.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_importlib_modulespec.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_random.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_random.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_thread.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_thread.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_warnings.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/_warnings.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/abc.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/abc.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/array.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/array.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/ast.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/ast.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/base_events.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/base_events.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/coroutines.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/coroutines.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/events.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/events.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/exceptions.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/exceptions.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/futures.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/futures.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/locks.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/locks.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/protocols.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/protocols.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/queues.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/queues.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/runners.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/runners.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/streams.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/streams.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/subprocess.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/subprocess.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/tasks.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/tasks.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/transports.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/asyncio/transports.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/base64.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/base64.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/binascii.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/binascii.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/builtins.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/builtins.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/clients.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/clients.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/codecs.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/codecs.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/collections/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/collections/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/collections/abc.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/collections/abc.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/futures/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/futures/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/futures/_base.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/futures/_base.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/futures/process.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/futures/process.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/futures/thread.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/concurrent/futures/thread.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/contextvars.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/contextvars.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/ctypes/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/ctypes/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/datetime.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/datetime.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/charset.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/charset.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/contentmanager.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/contentmanager.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/errors.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/errors.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/header.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/header.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/message.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/message.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/policy.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/policy.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/utils.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/email/utils.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/enum.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/enum.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/functools.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/functools.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/hashlib.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/hashlib.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/http/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/http/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/importlib/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/importlib/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/importlib/abc.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/importlib/abc.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/io.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/io.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/itertools.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/itertools.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/json/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/json/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/json/decoder.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/json/decoder.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/json/encoder.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/json/encoder.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/keys.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/keys.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/logging/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/logging/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/messages.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/messages.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/mmap.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/mmap.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/connection.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/connection.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/context.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/context.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/managers.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/managers.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/pool.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/pool.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/process.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/process.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/queues.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/queues.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/shared_memory.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/shared_memory.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/spawn.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/spawn.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/synchronize.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/multiprocessing/synchronize.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/os/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/os/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/os/path.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/os/path.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/parse.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/parse.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/posix.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/posix.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/queue.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/queue.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/random.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/random.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/re.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/re.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/selectors.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/selectors.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/signal.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/signal.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/socket.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/socket.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/ssl.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/ssl.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/string.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/string.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/struct.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/struct.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/subprocess.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/subprocess.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/sys.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/sys.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/threading.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/threading.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/time.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/time.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/types.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/types.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/typing.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/typing.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/typing_extensions.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/typing_extensions.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/urllib/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/urllib/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/urllib/parse.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/urllib/parse.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/uuid.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/uuid.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/warnings.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/warnings.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/auth.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/auth.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/client.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/client.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/exceptions.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/exceptions.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/extensions/__init__.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/extensions/__init__.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/extensions/base.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/extensions/base.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/extensions/permessage_deflate.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/extensions/permessage_deflate.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/framing.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/framing.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/handshake.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/handshake.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/headers.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/headers.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/http.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/http.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/protocol.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/protocol.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/server.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/server.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/typing.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/typing.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/uri.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/uri.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/utils.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/utils.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/version.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/websockets/version.meta.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/zlib.data.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.mypy_cache/3.8/zlib.meta.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/dictionaries/bwp.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dictionaries/bwp.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/parse.py" beforeDir="false" afterPath="$PROJECT_DIR$/parse.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/servers.py" beforeDir="false" afterPath="$PROJECT_DIR$/servers.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -27,8 +252,8 @@
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../akriosmud" />
+    <property name="settings.editor.selected.configurable" value="preferences.externalTools" />
   </component>
   <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -333,21 +558,88 @@
       <option name="project" value="LOCAL" />
       <updated>1580067830666</updated>
     </task>
-    <option name="localTasksCounter" value="37" />
+    <task id="LOCAL-00037" summary="Rollback for echo on Telnet">
+      <created>1580069971723</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1580069971723</updated>
+    </task>
+    <task id="LOCAL-00038" summary="Exception handling.">
+      <created>1580069991522</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1580069991522</updated>
+    </task>
+    <task id="LOCAL-00039" summary="Better task management / exception handling.">
+      <created>1580072467434</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1580072467434</updated>
+    </task>
+    <task id="LOCAL-00040" summary="Refactored message system.">
+      <created>1580077359763</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1580077359763</updated>
+    </task>
+    <task id="LOCAL-00041" summary="Broke message parsing from game into it's own module. Restructured some calls to, overall, be more concurrent.">
+      <created>1580429849445</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1580429849445</updated>
+    </task>
+    <task id="LOCAL-00042" summary="Cleanup">
+      <created>1580430136343</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1580430136343</updated>
+    </task>
+    <task id="LOCAL-00043" summary="Removed some extra logs that were for troubleshooting a specific issue.">
+      <created>1580430321328</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1580430321328</updated>
+    </task>
+    <task id="LOCAL-00044" summary="Experimenting with type hinting.">
+      <created>1580595260732</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1580595260732</updated>
+    </task>
+    <task id="LOCAL-00045" summary="Added additional comments.">
+      <created>1580595537056</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1580595537056</updated>
+    </task>
+    <task id="LOCAL-00046" summary="Ran through Black code formatter.">
+      <created>1580596038321</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1580596038322</updated>
+    </task>
+    <task id="LOCAL-00047" summary="Misc cleanup and more type hinting.">
+      <created>1580598046180</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1580598046180</updated>
+    </task>
+    <option name="localTasksCounter" value="48" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Round 2. Again." />
-    <MESSAGE value="Almost there" />
-    <MESSAGE value="Revert &quot;Delete keys.py&quot;&#10;&#10;This reverts commit ae7542e2" />
-    <MESSAGE value="Significant update. Works correctly now, lots of doc strings and cleanup." />
-    <MESSAGE value="Changed up some naming to be clearer.  Identified asyncio.sleep(0) as official &quot;yield nothing&quot; back to event loop." />
-    <MESSAGE value="Restructuring file layout." />
-    <MESSAGE value="Working on import loop." />
-    <MESSAGE value="FE &lt;-&gt; game player logouts" />
-    <MESSAGE value="FE &lt;-&gt; game player log out handling and other cleanup." />
-    <MESSAGE value="Removed some unnecessary task tracking." />
     <MESSAGE value="Back out of changes trying for secure telnet to focus on game engine updates." />
     <MESSAGE value="Additional tweak to back out of secure telnet for now." />
     <MESSAGE value="Refactor file names.  Tweaked some doc strings." />
@@ -363,17 +655,31 @@
     <MESSAGE value="Ran through the Black code formatter.  Updated lots of doc strings and inline comments." />
     <MESSAGE value="Finish refactor in clients.py of handle_client to client_handler to match the rest of the package." />
     <MESSAGE value="Rollback for echo on Telnet" />
-    <option name="LAST_COMMIT_MESSAGE" value="Rollback for echo on Telnet" />
+    <MESSAGE value="Exception handling." />
+    <MESSAGE value="Better task management / exception handling." />
+    <MESSAGE value="Refactored message system." />
+    <MESSAGE value="Broke message parsing from game into it's own module. Restructured some calls to, overall, be more concurrent." />
+    <MESSAGE value="Cleanup" />
+    <MESSAGE value="Removed some extra logs that were for troubleshooting a specific issue." />
+    <MESSAGE value="Experimenting with type hinting." />
+    <MESSAGE value="Added additional comments." />
+    <MESSAGE value="Ran through Black code formatter." />
+    <MESSAGE value="Misc cleanup and more type hinting." />
+    <option name="LAST_COMMIT_MESSAGE" value="Misc cleanup and more type hinting." />
   </component>
   <component name="WindowStateProjectService">
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1580069971649">
+    <state x="949" y="391" width="510" height="485" key="#com.intellij.tools.ToolEditorDialog" timestamp="1580075570071">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1580069971649" />
-    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1576882556650">
+    <state x="949" y="391" width="510" height="485" key="#com.intellij.tools.ToolEditorDialog/67.27.1853.1053@67.27.1853.1053" timestamp="1580075570071" />
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2" timestamp="1580598471034">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1576882556650" />
+    <state x="821" y="148" width="777" height="807" key="CommitChangelistDialog2/67.27.1853.1053@67.27.1853.1053" timestamp="1580598471034" />
+    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl" timestamp="1580077371743">
+      <screen x="67" y="27" width="1853" height="1053" />
+    </state>
+    <state x="896" y="389" width="424" height="484" key="FileChooserDialogImpl/67.27.1853.1053@67.27.1853.1053" timestamp="1580077371743" />
     <state x="975" y="475" key="Github.ShareDialog" timestamp="1575854309613">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
@@ -394,14 +700,14 @@
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
     <state width="1073" height="260" key="GridCell.Tab.0.right/67.27.1853.1053@67.27.1853.1053" timestamp="1575767290511" />
-    <state x="698" y="195" key="SettingsEditor" timestamp="1575739232899">
+    <state x="698" y="195" key="SettingsEditor" timestamp="1580075570970">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="698" y="195" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1575739232899" />
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580069973464">
+    <state x="698" y="195" key="SettingsEditor/67.27.1853.1053@67.27.1853.1053" timestamp="1580075570970" />
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2" timestamp="1580598472336">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
-    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1580069973464" />
+    <state x="810" y="288" width="800" height="528" key="Vcs.Push.Dialog.v2/67.27.1853.1053@67.27.1853.1053" timestamp="1580598472336" />
     <state x="657" y="195" width="662" height="715" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1578259411782">
       <screen x="67" y="27" width="1853" height="1053" />
     </state>
