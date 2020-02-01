@@ -141,11 +141,10 @@ async def ws_handler(websocket_: WebSocketServerProtocol, path: str) -> None:
         This coroutine will run while we have active coroutines associated with it.
 
     """
-    log.info(f"websocket_ type is: {type(websocket_)}")
     game_connection: GameConnection = GameConnection()
     register_client(game_connection)
 
-    log.info(f"Received websocket connection from game.")
+    log.debug(f"Received websocket connection from game at : {websocket_} {path}")
 
     tasks: List[asyncio.Task] = [
         asyncio.create_task(ws_heartbeat(websocket_, game_connection), name=f"WS: {game_connection.uuid} hb",),
