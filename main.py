@@ -41,9 +41,6 @@ import clients
 from keys import passphrase as ca_phrase
 import servers
 
-logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
-log: logging.Logger = logging.getLogger(__name__)
-
 
 async def shutdown(signal_: signal.Signals, loop_: asyncio.AbstractEventLoop) -> None:
     """
