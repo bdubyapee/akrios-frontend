@@ -28,6 +28,7 @@
 
 # Standard Lib
 import asyncio
+import functools
 import logging
 import signal
 
@@ -76,9 +77,8 @@ def handle_exception_generic(loop_: asyncio.AbstractEventLoop, context: Dict) ->
 if __name__ == "__main__":
     loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
-    signals: Tuple = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
-    for sig in signals:
-        loop.add_signal_handler(sig, lambda s=sig: asyncio.create_task(shutdown(s, loop)))
+    for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(sig, loop)))
 
     loop.set_exception_handler(handle_exception_generic)
 
