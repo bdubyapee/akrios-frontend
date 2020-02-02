@@ -15,10 +15,6 @@
     this front end to run a new instance.  We provide the client session -> player name details to the
     new game engine instance which automatically logs in the players.
 
-    NOTE: keys.py and the akrios_ca are included in the project for example purposes. No live game is running
-          using these keys.  Update keys.py and create a new key, instructions below, if you intend to use
-          this front end on a live server.
-
     SSH Details
     ! Create an akrios_ca to use for the SSH portion of the front end.  You can use the command below to
     ! generate the file. Use a passphrase during ca generation, place it in keys.py.
@@ -44,7 +40,7 @@ import clients
 from keys import passphrase as ca_phrase
 import servers
 
-logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=logging.DEBUG)
+logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 log: logging.Logger = logging.getLogger(__name__)
 
 
@@ -90,7 +86,7 @@ if __name__ == "__main__":
     log.info(f"Creating game engine websocket listener on port {ws_port}")
     all_servers: List[Awaitable] = [
         telnetlib3.create_server(
-            port=telnet_port, shell=clients.client_handler, connect_maxwait=0.5, timeout=3600, log=log,
+            port=telnet_port, shell=clients.client_telnet_handler, connect_maxwait=0.5, timeout=3600, log=log,
         ),
         asyncssh.create_server(
             clients.MySSHServer,
@@ -98,7 +94,7 @@ if __name__ == "__main__":
             ssh_port,
             server_host_keys=["akrios_ca"],
             passphrase=ca_phrase,
-            process_factory=clients.client_handler,
+            process_factory=clients.client_ssh_handler,
             keepalive_interval=10,
             login_timeout=3600,
         ),

@@ -189,37 +189,17 @@ async def client_write(writer, connection) -> None:
         asyncio.create_task(writer.drain())
 
 
-async def client_handler(*args) -> None:
+async def client_ssh_handler(process) -> None:
     """
-    This is a generic handler/"shell".  It is called on new connections of both
-    telnet and SSH clients.
-
-    By performing the if/else blocks we can handle both Telnet and SSH
-    connections via the same handler.
-
-    This can probably be cleaner by checking the type of the positional arguments.
-    Or perhaps break it into two handlers anyway.  Investigate this.
+    This handler is for SSH client connections. Upon a client connection this handler is
+    the starting point for creating the tasks necessary to handle the client.
     """
-    if len(args) == 1:
-        conn_type = "ssh"
-        process = args[0]
-        log.debug(f"SSH details are: {dir(process)}")
-        reader = process.stdin
-        writer = process.stdout
-        addr, port = process.get_extra_info("peername")
-    else:
-        conn_type = "telnet"
-        process = None
-        reader = args[0]
-        writer = args[1]
-        addr, port = writer.get_extra_info("peername")
+    log.debug(f"SSH details are: {dir(process)}")
+    reader = process.stdin
+    writer = process.stdout
+    addr, port = process.get_extra_info("peername")
 
-        # Need to work on slightly better telnet support for regular old telnet clients.
-        # Everything so far works great in Mudlet.  Just saying....
-        # We sent an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
-        writer.iac(WONT, ECHO)
-
-    connection: PlayerConnection = PlayerConnection(addr, port, conn_type)
+    connection: PlayerConnection = PlayerConnection(addr, port, "ssh")
 
     await register_client(connection)
 
@@ -237,12 +217,45 @@ async def client_handler(*args) -> None:
 
     await unregister_client(connection)
 
-    if conn_type == "ssh":
-        process.close(   )
-        process.exit(0)
-    elif conn_type == "telnet":
-        writer.write_eof()
-        writer.close()
+    process.close()
+    process.exit(0)
+
+    for each_task in rest:
+        each_task.cancel()
+
+
+async def client_telnet_handler(reader, writer) -> None:
+    """
+    This handler is for telnet client connections. Upon a client connection this handler is
+    the starting point for creating the tasks necessary to handle the client.
+    """
+    addr, port = writer.get_extra_info("peername")
+
+    # Need to work on slightly better telnet support for regular old telnet clients.
+    # Everything so far works great in Mudlet.  Just saying....
+    # We sent an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
+    writer.iac(WONT, ECHO)
+
+    connection: PlayerConnection = PlayerConnection(addr, port, "telnet")
+
+    await register_client(connection)
+
+    tasks: List[asyncio.Task] = [
+        asyncio.create_task(client_read(reader, connection), name=f"{connection.uuid} read"),
+        asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} write"),
+    ]
+
+    asyncio.current_task().set_name(f"{connection.uuid} handler")  # type: ignore
+
+    # We want to .wait until the first task is completed.  Completed could be an actual finishing
+    # of execution or an exception.  If either the read or writer "completes", we want to ensure
+    # we move beyond this point and cleanup the tasks associated with this client.
+    _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
+
+    await unregister_client(connection)
+
+    writer.write_eof()
+    writer.close()
 
     for each_task in rest:
         each_task.cancel()
