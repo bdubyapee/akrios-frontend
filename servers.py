@@ -113,6 +113,7 @@ async def ws_read(websocket_: WebSocketServerProtocol, game_connection: GameConn
     """
     while game_connection.state["connected"]:
         if data := await websocket_.recv():
+            log.debug(f"Received from game: {data}")
             asyncio.create_task(parse.message_parse(data))
         else:
             game_connection.state["connected"] = False  # EOF Disconnect
@@ -126,6 +127,7 @@ async def ws_write(websocket_: WebSocketServerProtocol, game_connection: GameCon
     """
     while game_connection.state["connected"]:
         msg_obj: Message = await messages_to_game.get()
+        log.debug(f"Message sent to game: {msg_obj.msg}")
 
         asyncio.create_task(websocket_.send(msg_obj.msg))
 

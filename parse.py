@@ -36,7 +36,7 @@ async def softboot_game(wait_time: int) -> None:
         launch the game.
     """
     await asyncio.sleep(wait_time)
-    subprocess.Popen(["python3.8", "/home/bwp/PycharmProjects/akriosmud/src/akrios.py", "&"])
+    subprocess.Popen(["python3.8", "/home/bwp/PycharmProjects/akriosmud/src/akrios.py"])
 
 
 async def msg_heartbeat(msg: Dict[str, Dict[str, str]]) -> None:
@@ -94,11 +94,11 @@ async def msg_player_session_command(msg: Dict[str, Dict[str, str]]) -> None:
     if session in clients.connections:
         if clients.connections[session].conn_type == "telnet":
             if command == "do echo":
-                message = WONT + ECHO
+                message = (WONT, ECHO)
             elif command == "dont echo":
-                message = WILL + ECHO
+                message = (WILL, ECHO)
             else:
-                message = WONT + ECHO
+                message = (WONT, ECHO)
             asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", "", message)))
 
 

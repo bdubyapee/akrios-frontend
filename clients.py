@@ -68,7 +68,7 @@ class PlayerConnection(object):
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO")))
+        asyncio.create_task(messages_to_game.put(Message("IO", json.dumps(msg, sort_keys=True, indent=4))))
 
     async def notify_disconnected(self) -> None:
         """
@@ -86,7 +86,7 @@ class PlayerConnection(object):
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO")))
+        asyncio.create_task(messages_to_game.put(Message("IO", json.dumps(msg, sort_keys=True, indent=4))))
 
 
 class MySSHServer(asyncssh.SSHServer):
@@ -169,7 +169,7 @@ async def client_read(reader, connection) -> None:
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message(json.dumps(msg, sort_keys=True, indent=4), "IO")))
+        asyncio.create_task(messages_to_game.put(Message("IO", json.dumps(msg, sort_keys=True, indent=4))))
 
 
 async def client_write(writer, connection) -> None:
@@ -184,7 +184,7 @@ async def client_write(writer, connection) -> None:
         if msg_obj.is_io:
             writer.write(msg_obj.msg)
         elif msg_obj.is_command_telnet:
-            writer.iac(msg_obj.msg[0], msg_obj.msg[1])
+            writer.iac(msg_obj.command[0], msg_obj.command[1])
 
         asyncio.create_task(writer.drain())
 
@@ -238,7 +238,7 @@ async def client_handler(*args) -> None:
     await unregister_client(connection)
 
     if conn_type == "ssh":
-        process.close()
+        process.close(   )
         process.exit(0)
     elif conn_type == "telnet":
         writer.write_eof()

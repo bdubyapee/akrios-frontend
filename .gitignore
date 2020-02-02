@@ -30,4 +30,6 @@ data/log/*.log
 
 # Temp #
 nohup.out
+akrios_ca
+keys.py
 

@@ -23,17 +23,16 @@
     ! Create an akrios_ca to use for the SSH portion of the front end.  You can use the command below to
     ! generate the file. Use a passphrase during ca generation, place it in keys.py.
     !
-    ! ssh-keygen -f akrios_ca
+    ! ssh-keygen -t rsa -b 4096 -o -a 100
 """
 
-# Standard Lib
+# Standard Library
 import asyncio
-import functools
 import logging
 import signal
 
 # Standard Library Typing
-from typing import Awaitable, Dict, List, Tuple
+from typing import Awaitable, Dict, List
 
 # Third Party
 import asyncssh  # type: ignore
@@ -45,7 +44,7 @@ import clients
 from keys import passphrase as ca_phrase
 import servers
 
-logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=logging.DEBUG)
 log: logging.Logger = logging.getLogger(__name__)
 
 
