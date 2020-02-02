@@ -23,6 +23,7 @@
 """
 
 # Standard Library
+import argparse
 import asyncio
 import logging
 import signal
@@ -55,10 +56,11 @@ async def shutdown(signal_: signal.Signals, loop_: asyncio.AbstractEventLoop) ->
 
     tasks: List[asyncio.Task] = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
+    log.info(f"Cancelling {len(tasks)} outstanding tasks")
+
     for each_task in tasks:
         each_task.cancel()
 
-    log.info(f"Cancelling {len(tasks)} outstanding tasks")
     await asyncio.gather(*tasks, return_exceptions=True)
     loop_.stop()
 
@@ -70,6 +72,48 @@ def handle_exception_generic(loop_: asyncio.AbstractEventLoop, context: Dict) ->
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description='Change the option prefix characters',
+        prefix_chars='-+/',
+    )
+
+    parser.add_argument('-d', action="store_true",
+                        default=None,
+                        help='Set log level to debug',
+                        )
+    parser.add_argument('-t', action="store_false",
+                        default=None,
+                        help='Disable Telnet listener',
+                        )
+    parser.add_argument('-s', action="store_false",
+                        default=None,
+                        help='Disable SSH listener',
+                        )
+    parser.add_argument('-tp', action="store",
+                        default=6969,
+                        help='Telnet Listener Port (Default: 6969)',
+                        type=int,
+                        )
+    parser.add_argument('-sp', action="store",
+                        default=7979,
+                        help='SSH Listener Port (Default: 7979)',
+                        type=int,
+                        )
+    parser.add_argument('-wsp', action="store",
+                        default=8989,
+                        help='Websocket Listener Port (Default:8989)',
+                        type=int
+                        )
+    args = parser.parse_args()
+
+    if args.d:
+        log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO
+
+    logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=log_level)
+    log: logging.Logger = logging.getLogger(__name__)
+
     loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
 
     for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
@@ -77,18 +121,22 @@ if __name__ == "__main__":
 
     loop.set_exception_handler(handle_exception_generic)
 
-    telnet_port: int = 6969
-    ssh_port: int = 7979
-    ws_port: int = 8989
+    all_servers: List[Awaitable] = []
 
-    log.info(f"Creating client Telnet listener on port {telnet_port}")
-    log.info(f"Creating client SSH listener on port {ssh_port}")
-    log.info(f"Creating game engine websocket listener on port {ws_port}")
-    all_servers: List[Awaitable] = [
-        telnetlib3.create_server(
-            port=telnet_port, shell=clients.client_telnet_handler, connect_maxwait=0.5, timeout=3600, log=log,
-        ),
-        asyncssh.create_server(
+    if not args.t:
+        telnet_port: int = args.tp
+        log.info(f"Creating client Telnet listener on port {telnet_port}")
+        all_servers.append(telnetlib3.create_server(
+            port=telnet_port,
+            shell=clients.client_telnet_handler,
+            connect_maxwait=0.5,
+            timeout=3600,
+            log=log,))
+
+    if not args.s:
+        ssh_port: int = args.sp
+        log.info(f"Creating client SSH listener on port {ssh_port}")
+        all_servers.append(asyncssh.create_server(
             clients.MySSHServer,
             "",
             ssh_port,
@@ -96,10 +144,11 @@ if __name__ == "__main__":
             passphrase=ca_phrase,
             process_factory=clients.client_ssh_handler,
             keepalive_interval=10,
-            login_timeout=3600,
-        ),
-        websockets.serve(servers.ws_handler, "localhost", ws_port),
-    ]
+            login_timeout=3600,))
+
+    ws_port: int = args.wsp
+    log.info(f"Creating game engine websocket listener on port {ws_port}")
+    all_servers.append(websockets.serve(servers.ws_handler, "localhost", ws_port))
 
     log.info("Launching game front end loop:\n\r")
 
