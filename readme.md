@@ -1,7 +1,7 @@
 # AkriosMUD Front End
 
-AkriosMUD is a Multi-User Dungeon(MUD) written entirely in Python 3.  **This** project is the front end for AkriosMUD which
-accepts Telnet and SSH connections and facilitates input/output between the MUD engine and clients.  The front end is built using the Python asyncio module and aims to be concurrent.
+Akrios-II is a Multi-User Dungeon(MUD) written entirely in Python 3.  **This** project is the front end for Akrios-II which
+accepts Telnet and SSH connections and facilitates input/output between the MUD engine and clients.  The front end is built using the Python asyncio module and aims to be concurrent. Both Akrios-II and this Front End require Python 3.8+.
 
 
 
@@ -15,7 +15,7 @@ Clone this repo!
 
 ### Requirements
 
-The AkriosMUD Front End has several requirements which are not part of the standard library.  You will need to install those dependencies prior to running this package.  Your exact Python setup will determine the correct procedure to install them.  The below is a generic example.
+The Akrios-II Front End has several requirements which are not part of the standard library.  You will need to install those dependencies prior to running this package.  Your exact Python setup will determine the correct procedure to install them.  The below is a generic example.
 
 ```
 pip3 install -r requirements.txt
@@ -34,7 +34,7 @@ ssh-keygen -t rsa -b 4096 -o -a 100
 You will need to create a websocket secret key to use between the front end and the game engine as well as provide the passphrase you used during SSH keygen.  Create a keys.py with the following information.
 
 ```
-WS_SECRET = ""     <- This can be anything, I use a uuid4
+WS_SECRET = ""     <- This can be anything, I use a uuid4 (Needs to match MUD Engine)
 passphrase = ""    <- This needs to be the phrase you used during SSH keygen.
 ```
 
@@ -43,7 +43,7 @@ It would be trivial to modify this package to pull these values out of environme
 
 ## Deployment
 
-This, being a front end, will need a game engine to communicate with.  Currently this project is specific to [AkriosMUD](https://github.com/bdubyapee/akriosmud) which is my pure Python, 100% custom, engine.  This front end can be adapted to any other MU* which could be written to communicate with this front end via websockets.
+This, being a front end, will need a game engine to communicate with.  Currently this project is specific to [Akrios-II](https://github.com/bdubyapee/akrios-ii) which is my pure Python, 100% custom, engine.  This front end can be adapted to any other MU* which could be written to communicate with this front end via websockets.
 
 ## Authors
 
