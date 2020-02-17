@@ -36,7 +36,7 @@ async def softboot_game(wait_time: int) -> None:
         launch the game.
     """
     await asyncio.sleep(wait_time)
-    subprocess.Popen(["python3.8", "/home/bwp/PycharmProjects/akriosmud/src/akrios.py"])
+    subprocess.Popen(["python3.8", "/home/bwp/PycharmProjects/akrios-ii/src/server.py"])
 
 
 async def msg_heartbeat() -> None:
