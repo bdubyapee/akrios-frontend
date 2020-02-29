@@ -113,7 +113,7 @@ async def ws_read(websocket_: WebSocketServerProtocol, game_connection: GameConn
     """
     while game_connection.state["connected"]:
         if data := await websocket_.recv():
-            log.debug(f"Received from game: {data}")
+            log.debug(f"Received from game: {str(data)}")
             asyncio.create_task(parse.message_parse(data))
         else:
             game_connection.state["connected"] = False  # EOF Disconnect
