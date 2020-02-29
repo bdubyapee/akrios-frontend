@@ -116,7 +116,7 @@ messages: Dict[str, Callable] = {
 }
 
 
-async def message_parse(inp: Union[str, bytes]):
+async def message_parse(inp: Union[str, bytes]) -> None:
     msg: Dict[str, Dict[str, str]] = json.loads(inp)
 
     if "secret" not in msg.keys() or msg["secret"] != WS_SECRET:
