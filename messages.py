@@ -28,20 +28,20 @@ messages_to_clients: Dict[str, asyncio.Queue] = {}
 
 
 class Message(object):
-    def __init__(self, msg_type: str, msg: str = "", command: Tuple[ByteString, ByteString] = ('', '')) -> None:
+    def __init__(self, msg_type: str, msg: str = "", command: Tuple[ByteString, ByteString] = (b'', b'')) -> None:
         self.msg = msg
         self.command = command
         if msg_type in ["IO", "COMMAND-TELNET", "COMMAND-SSH"]:
             self.msg_type = msg_type
 
     @property
-    def is_command_telnet(self):
+    def is_command_telnet(self) -> bool:
         return True if self.msg_type == "COMMAND-TELNET" else False
 
     @property
-    def is_command_ssh(self):
+    def is_command_ssh(self) -> bool:
         return True if self.msg_type == "COMMAND-SSH" else False
 
     @property
-    def is_io(self):
+    def is_io(self) -> bool:
         return True if self.msg_type == "IO" else False
