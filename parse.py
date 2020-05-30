@@ -47,8 +47,10 @@ async def msg_players_output(payload):
     """
     session = payload["uuid"]
     message = payload["message"]
+    is_prompt = payload["is prompt"]
+
     if session in clients.connections:
-        asyncio.create_task(messages_to_clients[session].put(Message("IO", message)))
+        asyncio.create_task(messages_to_clients[session].put(Message("IO", message, '', is_prompt)))
 
 
 async def msg_players_sign_in(payload):
@@ -89,12 +91,12 @@ async def msg_player_session_command(payload) -> None:
     command = payload["command"]
     if session in clients.connections:
         if clients.connections[session].conn_type == "telnet":
+            message = (WONT, ECHO)
+            if command == "dont echo":
+                message = (WILL, ECHO)
             if command == "do echo":
                 message = (WONT, ECHO)
-            elif command == "dont echo":
-                message = (WILL, ECHO)
-            else:
-                message = (WONT, ECHO)
+
             asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", "", message)))
 
 

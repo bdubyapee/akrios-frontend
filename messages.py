@@ -25,8 +25,12 @@ messages_to_clients = {}
 
 
 class Message(object):
-    def __init__(self, msg_type, msg="", command=(b'', b'')):
+    def __init__(self, msg_type, msg="", command=(b'', b''), is_prompt=""):
         self.msg = msg
+        if is_prompt == "true":
+            self.is_prompt = True
+        else:
+            self.is_prompt = False
         self.command = command
         if msg_type in ["IO", "COMMAND-TELNET", "COMMAND-SSH"]:
             self.msg_type = msg_type

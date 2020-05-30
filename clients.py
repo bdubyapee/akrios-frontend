@@ -180,6 +180,9 @@ async def client_write(writer, connection):
         msg_obj = await messages_to_clients[connection.uuid].get()
         if msg_obj.is_io:
             writer.write(msg_obj.msg)
+            if msg_obj.is_prompt:
+                log.debug(f"Sending GA to session: {connection.uuid}")
+                writer.send_ga()
         elif msg_obj.is_command_telnet:
             writer.iac(msg_obj.command[0], msg_obj.command[1])
 
@@ -231,6 +234,7 @@ async def client_telnet_handler(reader, writer):
     the starting point for creating the tasks necessary to handle the client.
     """
     client_details = writer.get_extra_info("peername")
+
     if len(client_details) == 2:
         addr, port = client_details
     else:
@@ -260,6 +264,7 @@ async def client_telnet_handler(reader, writer):
     await unregister_client(connection)
 
     writer.write_eof()
+    await writer.drain()
     writer.close()
 
     for each_task in rest:
