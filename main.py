@@ -27,7 +27,6 @@ import argparse
 import asyncio
 import logging
 import signal
-import uvloop
 
 # Third Party
 import asyncssh
@@ -107,7 +106,6 @@ if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=log_level)
     log = logging.getLogger(__name__)
 
-    # uvloop.install()
     loop = asyncio.get_event_loop()
 
     for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
