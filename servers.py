@@ -90,7 +90,7 @@ async def softboot_connection_list(websocket_):
     """
     sessions = {}
     for session_id, client in clients.connections.items():
-        sessions[session_id] = [client.name, client.addr, client.port]
+        sessions[session_id] = [client.name.lower(), client.addr, client.port]
 
     payload = {"players": sessions}
     msg = {
@@ -98,7 +98,7 @@ async def softboot_connection_list(websocket_):
         "secret": WS_SECRET,
         "payload": payload,
     }
-
+    log.info(f"Notifying game engine of connections:\n\r{msg}")
     await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
 
 
@@ -158,6 +158,7 @@ async def ws_handler(websocket_, path):
     # crashed and restarted.  Await a coroutine which informs the game of those client
     # details so that they can be automatically logged back in.
     if clients.connections:
+        log.info("Game connected to Front End.  Clients exist, await softboot_connection_list")
         await softboot_connection_list(websocket_)
 
     _, pending = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
