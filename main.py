@@ -27,13 +27,11 @@ import argparse
 import asyncio
 import logging
 import signal
-
-# Standard Library Typing
-from typing import Awaitable, Dict, List
+import uvloop
 
 # Third Party
-import asyncssh  # type: ignore
-import telnetlib3  # type: ignore
+import asyncssh
+import telnetlib3
 import websockets
 
 # Project
@@ -42,30 +40,31 @@ from keys import passphrase as ca_phrase
 import servers
 
 
-async def shutdown(signal_: signal.Signals, loop_: asyncio.AbstractEventLoop) -> None:
+async def shutdown(signal_, loop_, log):
     """
         shutdown coroutine utilized for cleanup on receipt of certain signals.
-        Created and added as a handler to the loop in __main__
+        Created and added as a handler to the loop in main.
 
         https://www.roguelynn.com/talks/
     """
     log.warning(f"Received exit signal {signal_.name}")
 
-    tasks: List[asyncio.Task] = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+    tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
     log.info(f"Cancelling {len(tasks)} outstanding tasks")
 
-    for each_task in tasks:
-        each_task.cancel()
+    for task in tasks:
+        task.cancel()
 
-    await asyncio.gather(*tasks, return_exceptions=True)
+    exceptions = await asyncio.gather(*tasks, return_exceptions=True)
+    log.warning(f"Exceptions: {exceptions}")
     loop_.stop()
 
 
-def handle_exception_generic(loop_: asyncio.AbstractEventLoop, context: Dict) -> None:
-    msg: str = context.get("exception", context["message"])
+def handle_exceptions(loop_, context):
+    msg = context.get("exception", context["message"])
     log.warning(f"Caught exception: {msg} in loop: {loop_}")
-    log.warning(f"Caught in task: {asyncio.current_task().get_name()}")  # type: ignore
+    log.warning(f"Caught in task: {asyncio.current_task().get_name()}")
 
 
 if __name__ == "__main__":
@@ -106,19 +105,20 @@ if __name__ == "__main__":
     log_level = logging.DEBUG if args.d else logging.INFO
 
     logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=log_level)
-    log: logging.Logger = logging.getLogger(__name__)
+    log = logging.getLogger(__name__)
 
-    loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
+    # uvloop.install()
+    loop = asyncio.get_event_loop()
 
     for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(sig, loop)))
+        loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(sig, loop, log)))
 
-    loop.set_exception_handler(handle_exception_generic)
+    loop.set_exception_handler(handle_exceptions)
 
-    all_servers: List[Awaitable] = []
+    all_servers = []
 
     if not args.t:
-        telnet_port: int = args.tp
+        telnet_port = args.tp
         log.info(f"Creating client Telnet listener on port {telnet_port}")
         all_servers.append(telnetlib3.create_server(
             port=telnet_port,
@@ -128,7 +128,7 @@ if __name__ == "__main__":
             log=log,))
 
     if not args.s:
-        ssh_port: int = args.sp
+        ssh_port = args.sp
         log.info(f"Creating client SSH listener on port {ssh_port}")
         all_servers.append(asyncssh.create_server(
             clients.MySSHServer,
@@ -140,16 +140,15 @@ if __name__ == "__main__":
             keepalive_interval=10,
             login_timeout=3600,))
 
-    ws_port: int = args.wsp
+    ws_port = args.wsp
     log.info(f"Creating game engine websocket listener on port {ws_port}")
     all_servers.append(websockets.serve(servers.ws_handler, "localhost", ws_port))
 
     log.info("Launching game front end loop:\n\r")
 
-    for each_server in all_servers:
-        loop.run_until_complete(each_server)
+    for server in all_servers:
+        loop.run_until_complete(server)
 
     loop.run_forever()
 
     log.info("Front end shut down.")
-    loop.close()

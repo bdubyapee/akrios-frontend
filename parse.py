@@ -16,11 +16,8 @@ import json
 import subprocess
 import time
 
-# Standard Library Typing
-from typing import Callable, Dict, Union
-
 # Third Party
-from telnetlib3 import WILL, WONT, ECHO  # type: ignore
+from telnetlib3 import WILL, WONT, ECHO
 
 # Project
 from messages import Message, messages_to_clients
@@ -30,20 +27,20 @@ from keys import WS_SECRET
 log: logging.Logger = logging.getLogger(__name__)
 
 
-async def softboot_game(wait_time: int) -> None:
+async def softboot_game(wait_time):
     """
         The game has notified that it will shutdown.  We take the wait_time, sleep that time and then
         launch the game.
     """
     await asyncio.sleep(wait_time)
-    subprocess.Popen(["python3.8", "/home/bwp/PycharmProjects/akrios-ii/src/server.py"])
+    subprocess.Popen(["python", "/home/bwp/PycharmProjects/akrios-ii/src/server.py"])
 
 
-async def msg_heartbeat() -> None:
+async def msg_heartbeat():
     log.debug(f"Heartbeat received from game at: {time.time()}")
 
 
-async def msg_players_output(payload: Dict[str, str]) -> None:
+async def msg_players_output(payload):
     """
         The msg is output for a player.  We .put that message into the asyncio.queue for that specific
         player.
@@ -54,7 +51,7 @@ async def msg_players_output(payload: Dict[str, str]) -> None:
         asyncio.create_task(messages_to_clients[session].put(Message("IO", message)))
 
 
-async def msg_players_sign_in(payload: Dict[str, str]) -> None:
+async def msg_players_sign_in(payload):
     """
         We have received a player sign-in from the game engine.  We assign that authenticated name
         to the session.  Use for tracking during softboots.
@@ -66,7 +63,7 @@ async def msg_players_sign_in(payload: Dict[str, str]) -> None:
         clients.connections[session].name = player
 
 
-async def msg_players_sign_out(payload: Dict[str, str]) -> None:
+async def msg_players_sign_out(payload) -> None:
     """
         We have received a player sign-out message from the engine.  This indicates a player has quit
         the game.  We change player session state to disconnected to end their session.
@@ -80,7 +77,7 @@ async def msg_players_sign_out(payload: Dict[str, str]) -> None:
         asyncio.create_task(messages_to_clients[session].put(Message("IO", message)))
 
 
-async def msg_player_session_command(payload: Dict[str, str]) -> None:
+async def msg_player_session_command(payload) -> None:
     """
         Any non standard I/O for a player session.
 
@@ -101,11 +98,11 @@ async def msg_player_session_command(payload: Dict[str, str]) -> None:
             asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", "", message)))
 
 
-async def msg_game_softboot(payload: Dict[str, str]) -> None:
+async def msg_game_softboot(payload):
     await softboot_game(int(payload["wait_time"]))
 
 
-messages: Dict[str, Callable] = {
+messages = {
     "players/output": msg_players_output,
     "players/sign-in": msg_players_sign_in,
     "players/sign-out": msg_players_sign_out,
@@ -116,8 +113,8 @@ messages: Dict[str, Callable] = {
 }
 
 
-async def message_parse(inp: Union[str, bytes]) -> None:
-    msg: Dict[str, Dict[str, str]] = json.loads(inp)
+async def message_parse(inp):
+    msg = json.loads(inp)
 
     if "secret" not in msg.keys() or msg["secret"] != WS_SECRET:
         log.warning("No secret in message header, or wrong key.")
