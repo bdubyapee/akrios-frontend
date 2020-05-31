@@ -37,6 +37,9 @@ async def softboot_game(wait_time):
 
 
 async def msg_heartbeat():
+    """
+        We have received a heartbeat from the game engine.  Right now we just log the receipt.
+    """
     log.debug(f"parse.py:msg_heartbeat - Heartbeat received from game at: {time.time()}")
 
 
@@ -50,7 +53,7 @@ async def msg_players_output(payload):
     is_prompt = payload["is prompt"]
 
     if session in clients.connections:
-        asyncio.create_task(messages_to_clients[session].put(Message("IO", message, '', is_prompt)))
+        asyncio.create_task(messages_to_clients[session].put(Message("IO", message=message, is_prompt=is_prompt)))
 
 
 async def msg_players_sign_in(payload):
@@ -76,7 +79,7 @@ async def msg_players_sign_out(payload):
     if session in clients.connections:
         log.debug(f"parse.py:msg_players_sign_out - players/sign-out received for {player}@{session}")
         clients.connections[session].state["connected"] = False
-        asyncio.create_task(messages_to_clients[session].put(Message("IO", message)))
+        asyncio.create_task(messages_to_clients[session].put(Message("IO", message=message)))
 
 
 async def msg_player_session_command(payload):
@@ -91,13 +94,13 @@ async def msg_player_session_command(payload):
     command = payload["command"]
     if session in clients.connections:
         if clients.connections[session].conn_type == "telnet":
-            message = (WONT, ECHO)
+            iac_cmd = (WONT, ECHO)
             if command == "dont echo":
-                message = (WILL, ECHO)
+                iac_cmd = (WILL, ECHO)
             if command == "do echo":
-                message = (WONT, ECHO)
+                iac_cmd = (WONT, ECHO)
 
-            asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", "", message)))
+            asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", command=iac_cmd)))
 
 
 async def msg_game_softboot(payload):

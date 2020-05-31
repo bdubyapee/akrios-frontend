@@ -67,7 +67,7 @@ class PlayerConnection(object):
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message("IO", json.dumps(msg, sort_keys=True, indent=4))))
+        asyncio.create_task(messages_to_game.put(Message("IO", message=json.dumps(msg, sort_keys=True, indent=4))))
 
     async def notify_disconnected(self):
         """
@@ -85,7 +85,7 @@ class PlayerConnection(object):
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message("IO", json.dumps(msg, sort_keys=True, indent=4))))
+        asyncio.create_task(messages_to_game.put(Message("IO", message=json.dumps(msg, sort_keys=True, indent=4))))
 
 
 class MySSHServer(asyncssh.SSHServer):
@@ -99,9 +99,9 @@ class MySSHServer(asyncssh.SSHServer):
     def connection_made(self, conn):
         log.info(f'clients.py:MySShServer - SSH connection received from {conn.get_extra_info("peername")[0]}')
 
-    def connection_lost(self, exc):
-        if exc:
-            log.warning(f"clients.py:MySShServer - SSH connection error: {str(exc)}")
+    def connection_lost(self, exception):
+        if exception:
+            log.warning(f"clients.py:MySShServer - SSH connection error: {str(exception)}")
         else:
             log.info("clients.py:MySShServer - SSH connection closed.")
 
@@ -165,7 +165,7 @@ async def client_read(reader, connection):
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message("IO", json.dumps(msg, sort_keys=True, indent=4))))
+        asyncio.create_task(messages_to_game.put(Message("IO", message=json.dumps(msg, sort_keys=True, indent=4))))
 
 
 async def client_write(writer, connection):
