@@ -1,6 +1,6 @@
 #! usr/bin/env python
 # Project: akrios-frontend
-# Filename: main.py
+# Filename: frontend.py
 #
 # File Description: Main launching point for the connection front end to Akrios.
 #
@@ -46,17 +46,17 @@ async def shutdown(signal_, loop_):
 
         https://www.roguelynn.com/talks/
     """
-    log.warning(f"main.py:shutdown - Received exit signal {signal_.name}")
+    log.warning(f"frontend.py:shutdown - Received exit signal {signal_.name}")
 
     tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
-    log.info(f"main.py:shutdown - Cancelling {len(tasks)} outstanding tasks")
+    log.info(f"frontend.py:shutdown - Cancelling {len(tasks)} outstanding tasks")
 
     for task in tasks:
         task.cancel()
 
     exceptions = await asyncio.gather(*tasks, return_exceptions=True)
-    log.warning(f"main.py:shutdown - Exceptions: {exceptions}")
+    log.warning(f"frontend.py:shutdown - Exceptions: {exceptions}")
     loop_.stop()
 
 
@@ -66,8 +66,8 @@ def handle_exceptions(loop_, context):
         log, as warnings, any exceptions caught.
     """
     msg = context.get("exception", context["message"])
-    log.warning(f"main.py:handle_exceptions - Caught exception: {msg} in loop: {loop_}")
-    log.warning(f"main.py:handle_exceptions - Caught in task: {asyncio.current_task().get_name()}")
+    log.warning(f"frontend.py:handle_exceptions - Caught exception: {msg} in loop: {loop_}")
+    log.warning(f"frontend.py:handle_exceptions - Caught in task: {asyncio.current_task().get_name()}")
 
 
 if __name__ == "__main__":
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     if not args.t:
         telnet_port = args.tp
-        log.info(f"main.py:__main__ - Creating client Telnet listener on port {telnet_port}")
+        log.info(f"frontend.py:__main__ - Creating client Telnet listener on port {telnet_port}")
         all_servers.append(telnetlib3.create_server(
             port=telnet_port,
             shell=clients.client_telnet_handler,
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
     if not args.s:
         ssh_port = args.sp
-        log.info(f"main.py:__main__ - Creating client SSH listener on port {ssh_port}")
+        log.info(f"frontend.py:__main__ - Creating client SSH listener on port {ssh_port}")
         all_servers.append(asyncssh.create_server(
             clients.MySSHServer,
             "",
@@ -143,14 +143,14 @@ if __name__ == "__main__":
             login_timeout=3600,))
 
     ws_port = args.wsp
-    log.info(f"main.py:__main__ - Creating game engine websocket listener on port {ws_port}")
+    log.info(f"frontend.py:__main__ - Creating game engine websocket listener on port {ws_port}")
     all_servers.append(websockets.serve(servers.ws_handler, "localhost", ws_port))
 
-    log.info("main.py:__main__ - Launching game front end loop:\n\r")
+    log.info("frontend.py:__main__ - Launching game front end loop:\n\r")
 
     for server in all_servers:
         loop.run_until_complete(server)
 
     loop.run_forever()
 
-    log.info("main.py:__main__ - Front end shut down.")
+    log.info("frontend.py:__main__ - Front end shut down.")
