@@ -1,5 +1,5 @@
 #! usr/bin/env python
-# Project: akrios-fe
+# Project: akrios-frontend
 # Filename: parse.py
 #
 # File Description: Parse messages we receive from the game engine.
@@ -37,7 +37,7 @@ async def softboot_game(wait_time):
 
 
 async def msg_heartbeat():
-    log.debug(f"Heartbeat received from game at: {time.time()}")
+    log.debug(f"parse.py:msg_heartbeat - Heartbeat received from game at: {time.time()}")
 
 
 async def msg_players_output(payload):
@@ -61,11 +61,11 @@ async def msg_players_sign_in(payload):
     player = payload["name"]
     session = payload["uuid"]
     if session in clients.connections:
-        log.debug(f"players/sign-in received for {player}@{session}")
+        log.debug(f"parse.py:msg_players_sign_in - players/sign-in received for {player}@{session}")
         clients.connections[session].name = player
 
 
-async def msg_players_sign_out(payload) -> None:
+async def msg_players_sign_out(payload):
     """
         We have received a player sign-out message from the engine.  This indicates a player has quit
         the game.  We change player session state to disconnected to end their session.
@@ -74,12 +74,12 @@ async def msg_players_sign_out(payload) -> None:
     message = payload["message"]
     session = payload["uuid"]
     if session in clients.connections:
-        log.debug(f"players/sign-out received for {player}@{session}")
+        log.debug(f"parse.py:msg_players_sign_out - players/sign-out received for {player}@{session}")
         clients.connections[session].state["connected"] = False
         asyncio.create_task(messages_to_clients[session].put(Message("IO", message)))
 
 
-async def msg_player_session_command(payload) -> None:
+async def msg_player_session_command(payload):
     """
         Any non standard I/O for a player session.
 
@@ -101,6 +101,11 @@ async def msg_player_session_command(payload) -> None:
 
 
 async def msg_game_softboot(payload):
+    """
+        We have received a softboot message from the engine.  This indicates an administrator
+        has issued the softboot command.  The game engine will handle saving and closing out players,
+        we are now responsible for launching the game engine again.
+    """
     await softboot_game(int(payload["wait_time"]))
 
 
@@ -116,6 +121,10 @@ messages = {
 
 
 async def message_parse(inp):
+    """
+        We have received a message from the game engine.  Verify we have the correct secret key.
+        If the event is a key in the 'messages' dict above, we create a task to handle the message.
+    """
     msg = json.loads(inp)
 
     if "secret" not in msg.keys() or msg["secret"] != WS_SECRET:

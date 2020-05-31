@@ -1,5 +1,5 @@
 #! usr/bin/env python
-# Project: akrios-fe
+# Project: akrios-frontend
 # Filename: messages.py
 #
 # File Description: Message queues for passing input and output between the game and clients.

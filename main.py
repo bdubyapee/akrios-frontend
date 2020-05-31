@@ -1,5 +1,5 @@
 #! usr/bin/env python
-# Project: akrios-fe
+# Project: akrios-frontend
 # Filename: main.py
 #
 # File Description: Main launching point for the connection front end to Akrios.
@@ -39,31 +39,35 @@ from keys import passphrase as ca_phrase
 import servers
 
 
-async def shutdown(signal_, loop_, log):
+async def shutdown(signal_, loop_):
     """
         shutdown coroutine utilized for cleanup on receipt of certain signals.
         Created and added as a handler to the loop in main.
 
         https://www.roguelynn.com/talks/
     """
-    log.warning(f"Received exit signal {signal_.name}")
+    log.warning(f"main.py:shutdown - Received exit signal {signal_.name}")
 
     tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
-    log.info(f"Cancelling {len(tasks)} outstanding tasks")
+    log.info(f"main.py:shutdown - Cancelling {len(tasks)} outstanding tasks")
 
     for task in tasks:
         task.cancel()
 
     exceptions = await asyncio.gather(*tasks, return_exceptions=True)
-    log.warning(f"Exceptions: {exceptions}")
+    log.warning(f"main.py:shutdown - Exceptions: {exceptions}")
     loop_.stop()
 
 
 def handle_exceptions(loop_, context):
+    """
+        We attach this as the exception handler to the event loop.  Currently we just
+        log, as warnings, any exceptions caught.
+    """
     msg = context.get("exception", context["message"])
-    log.warning(f"Caught exception: {msg} in loop: {loop_}")
-    log.warning(f"Caught in task: {asyncio.current_task().get_name()}")
+    log.warning(f"main.py:handle_exceptions - Caught exception: {msg} in loop: {loop_}")
+    log.warning(f"main.py:handle_exceptions - Caught in task: {asyncio.current_task().get_name()}")
 
 
 if __name__ == "__main__":
@@ -109,7 +113,7 @@ if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
     for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(sig, loop, log)))
+        loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(sig, loop)))
 
     loop.set_exception_handler(handle_exceptions)
 
@@ -117,7 +121,7 @@ if __name__ == "__main__":
 
     if not args.t:
         telnet_port = args.tp
-        log.info(f"Creating client Telnet listener on port {telnet_port}")
+        log.info(f"main.py:__main__ - Creating client Telnet listener on port {telnet_port}")
         all_servers.append(telnetlib3.create_server(
             port=telnet_port,
             shell=clients.client_telnet_handler,
@@ -127,7 +131,7 @@ if __name__ == "__main__":
 
     if not args.s:
         ssh_port = args.sp
-        log.info(f"Creating client SSH listener on port {ssh_port}")
+        log.info(f"main.py:__main__ - Creating client SSH listener on port {ssh_port}")
         all_servers.append(asyncssh.create_server(
             clients.MySSHServer,
             "",
@@ -139,14 +143,14 @@ if __name__ == "__main__":
             login_timeout=3600,))
 
     ws_port = args.wsp
-    log.info(f"Creating game engine websocket listener on port {ws_port}")
+    log.info(f"main.py:__main__ - Creating game engine websocket listener on port {ws_port}")
     all_servers.append(websockets.serve(servers.ws_handler, "localhost", ws_port))
 
-    log.info("Launching game front end loop:\n\r")
+    log.info("main.py:__main__ - Launching game front end loop:\n\r")
 
     for server in all_servers:
         loop.run_until_complete(server)
 
     loop.run_forever()
 
-    log.info("Front end shut down.")
+    log.info("main.py:__main__ - Front end shut down.")

@@ -1,5 +1,5 @@
 #! usr/bin/env python
-# Project: akrios-fe
+# Project: akrios-frontend
 # Filename: clients.py
 #
 # File Description: Client connections via Telnet and SSH.
@@ -25,6 +25,8 @@ from messages import Message, messages_to_clients, messages_to_game
 from keys import WS_SECRET
 
 log: logging.Logger = logging.getLogger(__name__)
+
+connections = {}
 
 
 class PlayerConnection(object):
@@ -95,13 +97,13 @@ class MySSHServer(asyncssh.SSHServer):
     """
 
     def connection_made(self, conn):
-        log.info(f'SSH connection received from {conn.get_extra_info("peername")[0]}')
+        log.info(f'clients.py:MySShServer - SSH connection received from {conn.get_extra_info("peername")[0]}')
 
     def connection_lost(self, exc):
         if exc:
-            log.warning(f"SSH connection error: {str(exc)}")
+            log.warning(f"clients.py:MySShServer - SSH connection error: {str(exc)}")
         else:
-            log.info("SSH connection closed.")
+            log.info("clients.py:MySShServer - SSH connection closed.")
 
     def begin_auth(self, username):
         return False
@@ -113,10 +115,7 @@ class MySSHServer(asyncssh.SSHServer):
         return True
 
 
-connections = {}
-
-
-async def register_client(connection: PlayerConnection):
+async def register_client(connection):
     """
         Upon a new client connection, we register it to the connections dict.
     """
@@ -181,7 +180,6 @@ async def client_write(writer, connection):
         if msg_obj.is_io:
             writer.write(msg_obj.msg)
             if msg_obj.is_prompt:
-                log.debug(f"Sending GA to session: {connection.uuid}")
                 writer.send_ga()
         elif msg_obj.is_command_telnet:
             writer.iac(msg_obj.command[0], msg_obj.command[1])
@@ -194,14 +192,11 @@ async def client_ssh_handler(process):
     This handler is for SSH client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
-    log.debug(f"SSH details are: {dir(process)}")
+    log.debug(f"clients.py:client_ssh_handler - SSH details are: {dir(process)}")
     reader = process.stdin
     writer = process.stdout
     client_details = process.get_extra_info("peername")
-    if len(client_details) == 2:
-        addr, port = client_details
-    else:
-        addr, port, *rest = client_details
+    addr, port, *rest = client_details
 
     connection = PlayerConnection(addr, port, "ssh")
 
@@ -224,8 +219,8 @@ async def client_ssh_handler(process):
     process.close()
     process.exit(0)
 
-    for each_task in rest:
-        each_task.cancel()
+    for task in rest:
+        task.cancel()
 
 
 async def client_telnet_handler(reader, writer):
@@ -235,10 +230,7 @@ async def client_telnet_handler(reader, writer):
     """
     client_details = writer.get_extra_info("peername")
 
-    if len(client_details) == 2:
-        addr, port = client_details
-    else:
-        addr, port, *rest = client_details
+    addr, port, *rest = client_details
 
     # Need to work on slightly better telnet support for regular old telnet clients.
     # Everything so far works great in Mudlet.  Just saying....
@@ -267,5 +259,5 @@ async def client_telnet_handler(reader, writer):
     await writer.drain()
     writer.close()
 
-    for each_task in rest:
-        each_task.cancel()
+    for task in rest:
+        task.cancel()

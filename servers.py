@@ -1,5 +1,5 @@
 #! usr/bin/env python
-# Project: akrios-fe
+# Project: akrios-frontend
 # Filename: servers.py
 #
 # File Description: Game Engine connection websocket.
@@ -17,15 +17,16 @@ import json
 from uuid import uuid4
 
 # Third Party
-from websockets import WebSocketServerProtocol
 
 # Project
-from messages import Message, messages_to_game
+from messages import messages_to_game
 import clients
 from keys import WS_SECRET
 import parse
 
 log: logging.Logger = logging.getLogger(__name__)
+
+connections = {}
 
 
 class GameConnection(object):
@@ -42,13 +43,11 @@ class GameConnection(object):
         self.uuid = str(uuid4())
 
 
-connections = {}
-
-
 def register_client(game_connection):
     """
         Upon a new game connection, we register it to the GameConnection Class.
     """
+    log.debug(f"servers.py:register_client - Adding game {game_connection.uuid} to connections")
     connections[game_connection.uuid] = game_connection
 
 
@@ -57,7 +56,7 @@ def unregister_client(game_connection):
         Upon an existing game disconnecting, we unregister it.
     """
     if game_connection.uuid in connections:
-        log.debug(f"Deleting game {game_connection.uuid} from connections")
+        log.debug(f"servers.py:unregister_client - Deleting game {game_connection.uuid} from connections")
         connections.pop(game_connection.uuid)
 
 
@@ -98,7 +97,7 @@ async def softboot_connection_list(websocket_):
         "secret": WS_SECRET,
         "payload": payload,
     }
-    log.info(f"Notifying game engine of connections:\n\r{msg}")
+    log.debug(f"servers.py:softboot_connection_list - Notifying game engine of connections:\n\r{msg}")
     await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
 
 
@@ -110,7 +109,7 @@ async def ws_read(websocket_, game_connection):
     """
     while game_connection.state["connected"]:
         if data := await websocket_.recv():
-            log.debug(f"Received from game: {str(data)}")
+            log.debug(f"servers.py:ws_read - Received from game: {str(data)}")
             asyncio.create_task(parse.message_parse(data))
         else:
             game_connection.state["connected"] = False  # EOF Disconnect
@@ -124,7 +123,7 @@ async def ws_write(websocket_, game_connection):
     """
     while game_connection.state["connected"]:
         msg_obj = await messages_to_game.get()
-        log.debug(f"Message sent to game: {msg_obj.msg}")
+        log.debug(f"servers.py:ws_write - Message sent to game: {msg_obj.msg}")
 
         asyncio.create_task(websocket_.send(msg_obj.msg))
 
@@ -143,7 +142,7 @@ async def ws_handler(websocket_, path):
     game_connection = GameConnection()
     register_client(game_connection)
 
-    log.debug(f"Received websocket connection from game at : {websocket_} {path}")
+    log.debug(f"servers.py:ws_handler - Received websocket connection from game at : {websocket_} {path}")
 
     tasks = [
         asyncio.create_task(ws_heartbeat(websocket_, game_connection), name=f"WS: {game_connection.uuid} hb",),
@@ -158,7 +157,7 @@ async def ws_handler(websocket_, path):
     # crashed and restarted.  Await a coroutine which informs the game of those client
     # details so that they can be automatically logged back in.
     if clients.connections:
-        log.info("Game connected to Front End.  Clients exist, await softboot_connection_list")
+        log.debug("servers.py:ws_handler - Game connected to Front End.  Clients exist, await softboot_connection_list")
         await softboot_connection_list(websocket_)
 
     _, pending = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
@@ -166,9 +165,9 @@ async def ws_handler(websocket_, path):
     # Cancel any tasks associated with the 'current' game connection based on task name
     # containing a uuid for that connection.  This prevents the softboot, client and any other
     # task from cancelling unless they were specific to the connection.
-    for each_task in asyncio.all_tasks():
-        if game_connection.uuid in each_task.get_name():
-            each_task.cancel()
+    for task in asyncio.all_tasks():
+        if game_connection.uuid in task.get_name():
+            task.cancel()
 
     unregister_client(game_connection)
-    log.info(f"Closing websocket")
+    log.info(f"servers.py:ws_handler - Closing websocket")
