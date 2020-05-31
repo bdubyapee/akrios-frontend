@@ -9,7 +9,7 @@ accepts Telnet and SSH connections and facilitates input/output between the MUD 
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-### Step One
+### First
 
 Clone this repo!
 
@@ -21,7 +21,7 @@ The Akrios-II Front End has several requirements which are not part of the stand
 pip3 install -r requirements.txt
 ```
 
-### Installing
+### Create SSH key and Secret for Websocket Communications
 
 There are two steps you need to complete prior to running the front end.  
 
@@ -41,7 +41,12 @@ passphrase = ""    <- This needs to be the phrase you used during SSH keygen.
 It would be trivial to modify this package to pull these values out of environment variables.  That is left as an exercise for the reader.
 
 
-## Deployment
+## Caveats
+
+The Akrios-II engine has a softboot type capability. Please review parse.py in this package and update the softboot section accordingly.
+
+The starting point for launching this front end is **frontend.py**
+## Finally
 
 This, being a front end, will need a game engine to communicate with.  Currently this project is specific to [Akrios-II](https://github.com/bdubyapee/akrios-ii) which is my pure Python, 100% custom, engine.  This front end can be adapted to any other MU* which could be written to communicate with this front end via websockets.
 
