@@ -43,9 +43,10 @@ class PlayerConnection(object):
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
 
-    def __init__(self, addr, port, conn_type):
+    def __init__(self, addr, port, conn_type, rows):
         self.addr = addr
         self.port = port
+        self.rows = rows
         self.conn_type = conn_type
         self.state = {"connected": True, "logged in": False}
         self.name = ""
@@ -60,6 +61,7 @@ class PlayerConnection(object):
             "uuid": self.uuid,
             "addr": self.addr,
             "port": self.port,
+            "rows": self.rows,
         }
         msg = {
             "event": "connection/connected",
@@ -229,6 +231,7 @@ async def client_telnet_handler(reader, writer):
     the starting point for creating the tasks necessary to handle the client.
     """
     client_details = writer.get_extra_info("peername")
+    rows = writer.get_extra_info("rows")
 
     addr, port, *rest = client_details
 
@@ -237,7 +240,7 @@ async def client_telnet_handler(reader, writer):
     # We sent an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
     writer.iac(WONT, ECHO)
 
-    connection = PlayerConnection(addr, port, "telnet")
+    connection = PlayerConnection(addr, port, "telnet", rows)
 
     await register_client(connection)
 
