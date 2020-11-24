@@ -28,6 +28,7 @@ log: logging.Logger = logging.getLogger(__name__)
 
 connections = {}
 
+# Test
 
 class PlayerConnection(object):
     """
