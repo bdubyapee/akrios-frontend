@@ -43,7 +43,7 @@ class PlayerConnection(object):
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
 
-    def __init__(self, addr, port, conn_type, rows):
+    def __init__(self, addr, port, conn_type, rows=24):
         self.addr = addr
         self.port = port
         self.rows = rows

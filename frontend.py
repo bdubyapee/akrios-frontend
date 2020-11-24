@@ -123,6 +123,7 @@ if __name__ == "__main__":
         telnet_port = args.tp
         log.info(f"frontend.py:__main__ - Creating client Telnet listener on port {telnet_port}")
         all_servers.append(telnetlib3.create_server(
+            host='localhost',
             port=telnet_port,
             shell=clients.client_telnet_handler,
             connect_maxwait=0.5,
