@@ -24,7 +24,6 @@
     Create Certificate and key for SSL context (Secure Telnet)
 
     openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout server_key.pem -out server_cert.pem
-    # openssl req -x509 -new -nodes -key server_key.pem -sha256 -days 1825 -out server_ca.pem
 """
 
 # Standard Library
