@@ -2,12 +2,12 @@
 # Project: akrios-frontend
 # Filename: clients.py
 #
-# File Description: Client connections via Telnet and SSH.
+# File Description: Client connections via Telnet, Secure Telnet and SSH.
 #
 # By: Jubelo
 """
-    Housing the Class(es) and coroutines for accepting and maintaining connections from clients via Telnet
-    and SSH.
+    Housing the Class(es) and coroutines for accepting and maintaining connections from clients via Telnet,
+    Secure Telnet and SSH.
 """
 
 # Standard Library
@@ -140,7 +140,7 @@ async def unregister_client(connection):
 
 async def client_read(reader, connection):
     """
-        Utilized by the client_handler.
+        Utilized by the Telnet and SSH client_handlers.
 
         We want this coroutine to run while the client is connected, so we begin with a while loop
         We first await control back to the loop until we have received some input (or an EOF)
@@ -171,15 +171,23 @@ async def client_read(reader, connection):
 
 
 async def client_stp_read(reader, connection):
+    """
+        Utilized by the Secure Telnet client_stp_handler.
+
+        We want this coroutine to run while the client is connected, so we begin with a while loop
+        We first await control back to the loop until we have received some input (or an EOF)
+            Mark the connection to disconnected and break out if a disconnect (EOF)
+            else we handle the input. Client input packaged into a JSON payload and put into the
+            messages_to_game asyncio.Queue()
+    """
     while connection.state["connected"]:
-        data = await reader.readline()
-        log.debug(f"Read the following data: {data}")
-        if not data:
+        inp = await reader.readline()
+
+        if not inp:
             log.info(f'Connection terminated with {connection.addr}')
             connection.state["connected"] = False
 
-        inp = data.decode()
-        log.debug(f'Read in the following input: {inp}')
+        inp = inp.decode()
 
         payload = {
             "uuid": connection.uuid,
@@ -198,7 +206,7 @@ async def client_stp_read(reader, connection):
 
 async def client_write(writer, connection):
     """
-        Utilized by the client_handler.
+        Utilized by the Telnet and SSH client_handlers.
 
         We want this coroutine to run while the client is connected, so we begin with a while loop
         We await for any messages from the game to this client, then write and drain it.
@@ -217,8 +225,10 @@ async def client_write(writer, connection):
 
 async def client_stp_write(writer, connection):
     """
-        Utilized by the client_stp_handler.  We have some bytes/str work to deal with so it's
-        probably easier to have this as a separate coroutine from the other.
+        Utilized by the Secure Telnet client_stp_handler.  We have some bytes/str work to deal with so it's
+        probably easier to have this as a separate coroutine from the other. We want this coroutine to run while
+        the client is connected, so we begin with a while loop.  We await for any messages from the game to this
+        client, then write and drain it.
     """
     while connection.state["connected"]:
         msg_obj = await messages_to_clients[connection.uuid].get()
@@ -238,24 +248,28 @@ async def client_ssh_handler(process):
     reader = process.stdin
     writer = process.stdout
     client_details = process.get_extra_info("peername")
+
     addr, port, *rest = client_details
+    log.info(f"Connection established with {addr} : {port} : {rest}")
 
     connection = PlayerConnection(addr, port, "ssh")
 
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_read(reader, connection), name=f"{connection.uuid} read"),
-        asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} write"),
+        asyncio.create_task(client_read(reader, connection), name=f"{connection.uuid} ssh read"),
+        asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} ssh write"),
     ]
 
-    asyncio.current_task().set_name(f"{connection.uuid} handler")
+    asyncio.current_task().set_name(f"{connection.uuid} ssh handler")
 
     # We want to .wait until the first task is completed.  Completed could be an actual finishing
     # of execution or an exception.  If either the read or writer "completes", we want to ensure
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
+    # Once we reach this point one of our tasks (reader/writer) have completed or failed.  Remove client
+    # from the registration list and perform connection specific cleanup.
     await unregister_client(connection)
 
     process.close()
@@ -270,15 +284,17 @@ async def client_telnet_handler(reader, writer):
     This handler is for telnet client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
-    log.info(f"clients.py:client_telnet_handler - telnet details are: {dir(reader)}")
+    log.debug(f"clients.py:client_telnet_handler - telnet details are: {dir(reader)}")
     client_details = writer.get_extra_info("peername")
     rows = writer.get_extra_info("rows")
 
     addr, port, *rest = client_details
+    log.info(f"Connection established with {addr} : {port} : {rest}")
 
-    # Need to work on slightly better telnet support for regular old telnet clients.
+    # Need to work on better telnet support for regular old telnet clients.
     # Everything so far works great in Mudlet.  Just saying....
-    # We sent an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
+
+    # We send an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
     writer.iac(WONT, ECHO)
 
     connection = PlayerConnection(addr, port, "telnet", rows)
@@ -286,17 +302,19 @@ async def client_telnet_handler(reader, writer):
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_read(reader, connection), name=f"{connection.uuid} read"),
-        asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} write"),
+        asyncio.create_task(client_read(reader, connection), name=f"{connection.uuid} telnet read"),
+        asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} telnet write"),
     ]
 
-    asyncio.current_task().set_name(f"{connection.uuid} handler")
+    asyncio.current_task().set_name(f"{connection.uuid} ssh handler")
 
     # We want to .wait until the first task is completed.  Completed could be an actual finishing
     # of execution or an exception.  If either the read or writer "completes", we want to ensure
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
+    # Once we reach this point one of our tasks (reader/writer) have completed or failed.  Remove client
+    # from the registration list and perform connection specific cleanup.
     await unregister_client(connection)
 
     writer.write_eof()
@@ -312,34 +330,31 @@ async def client_stp_handler(reader, writer):
     This handler is for secure telnet client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
-    log.info(f"clients.py:client_stp_handler - telnet details are: {dir(reader)}")
+    log.debug(f"clients.py:client_stp_handler - secure telnet details are: {dir(reader)}")
     client_details = writer.get_extra_info("peername")
 
     addr, port, *rest = client_details
     log.info(f"Connection established with {addr} : {port} : {rest}")
 
     connection = PlayerConnection(addr, port, "secure telnet")
-    log.info(f"Created PlayerConnection: {connection}")
 
     await register_client(connection)
-    log.info("Awaited register_client in client_stp_handler")
 
     tasks = [
-        asyncio.create_task(client_stp_read(reader, connection), name=f"{connection.uuid} read"),
-        asyncio.create_task(client_stp_write(writer, connection), name=f"{connection.uuid} write"),
+        asyncio.create_task(client_stp_read(reader, connection), name=f"{connection.uuid} stp read"),
+        asyncio.create_task(client_stp_write(writer, connection), name=f"{connection.uuid} stp write"),
     ]
-    log.info(f"Created tasks: {tasks}")
 
-    asyncio.current_task().set_name(f"{connection.uuid} handler")
+    asyncio.current_task().set_name(f"{connection.uuid} stp handler")
 
     # We want to .wait until the first task is completed.  Completed could be an actual finishing
     # of execution or an exception.  If either the read or writer "completes", we want to ensure
     # we move beyond this point and cleanup the tasks associated with this client.
-    log.info("Before .wait(ing) tasks")
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
-    log.info("After .wait(ing) tasks")
+
+    # Once we reach this point one of our tasks (reader/writer) have completed or failed.  Remove client
+    # from the registration list and perform connection specific cleanup.
     await unregister_client(connection)
-    log.info("Unregistered client")
 
     writer.write_eof()
     await writer.drain()

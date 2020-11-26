@@ -9,7 +9,7 @@
     Front End utilized for separating server(connectivity) and game logic for Akrios.
     End game is to have several front ends available (Telnet, Secure Telnet, SSH, Web, etc)
 
-    Currently we handle telnet and SSH clients.
+    Currently we handle Telnet, Secure Telnet and SSH clients.
 
     Allows for game to initiate a "softboot", which shuts down the game engine itself and instructs
     this front end to run a new instance.  We provide the client session -> player name details to the
@@ -21,9 +21,13 @@
     !
     ! ssh-keygen -t rsa -b 4096 -o -a 100
 
-    Create Certificate and key for SSL context (Secure Telnet)
+    A portion of the Secure (SSL/TLS) Telnet code was lifted from https://github.com/zapstar
+    I do not see any licensing any information on his project so placing credit here.
 
-    openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout server_key.pem -out server_cert.pem
+    Secure Telnet Details
+    ! Create Certificate and key for SSL context (Secure Telnet)
+    !
+    ! openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout server_key.pem -out server_cert.pem
 """
 
 # Standard Library
@@ -77,8 +81,8 @@ def handle_exceptions(loop_, context):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Change the option prefix characters',
-        prefix_chars='-+/',
+        description="Change the option prefix characters",
+        prefix_chars="-+/",
     )
 
     parser.add_argument('-d', action="store_true",
@@ -137,7 +141,7 @@ if __name__ == "__main__":
         telnet_port = args.tp
         log.info(f"frontend.py:__main__ - Creating client Telnet listener on port {telnet_port}")
         all_servers.append(telnetlib3.create_server(
-            host='localhost',
+            host="localhost",
             port=telnet_port,
             shell=clients.client_telnet_handler,
             connect_maxwait=0.5,
@@ -157,10 +161,6 @@ if __name__ == "__main__":
             keepalive_interval=10,
             login_timeout=3600,))
 
-    # for testing ssl server
-    # This is like telnet localhost:12345 but using your cert and key
-    # openssl s_client -connect localhost:12345
-
     if not args.st:
         st_port = args.stp
         log.info(f"frontend.py:__main__ - Creating client Secure Telnet listener on port {st_port}")
@@ -170,8 +170,7 @@ if __name__ == "__main__":
         ssl_ctx.options |= ssl.OP_NO_TLSv1_1
         ssl_ctx.options |= ssl.OP_SINGLE_DH_USE
         ssl_ctx.options |= ssl.OP_SINGLE_ECDH_USE
-        ssl_ctx.load_cert_chain('server_cert.pem', keyfile='server_key.pem')
-        # ssl_ctx.load_verify_locations(cafile='server_ca.pem')
+        ssl_ctx.load_cert_chain("server_cert.pem", keyfile="server_key.pem")
         ssl_ctx.check_hostname = False
         # ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
         ssl_ctx.set_ciphers("ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384")
