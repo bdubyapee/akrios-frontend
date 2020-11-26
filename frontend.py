@@ -20,6 +20,11 @@
     ! generate the file. Use a passphrase during ca generation, place it in keys.py.
     !
     ! ssh-keygen -t rsa -b 4096 -o -a 100
+
+    Create Certificate and key for SSL context (Secure Telnet)
+
+    openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout server_key.pem -out server_cert.pem
+    # openssl req -x509 -new -nodes -key server_key.pem -sha256 -days 1825 -out server_ca.pem
 """
 
 # Standard Library
@@ -27,6 +32,7 @@ import argparse
 import asyncio
 import logging
 import signal
+import ssl
 
 # Third Party
 import asyncssh
@@ -88,14 +94,23 @@ if __name__ == "__main__":
                         default=None,
                         help='Disable SSH listener',
                         )
+    parser.add_argument('-st', action="store_false",
+                        default=None,
+                        help='Disable Secure Telnet listener',
+                        )
     parser.add_argument('-tp', action="store",
-                        default=6969,
-                        help='Telnet Listener Port (Default: 6969)',
+                        default=4000,
+                        help='Telnet Listener Port (Default: 4000)',
                         type=int,
                         )
     parser.add_argument('-sp', action="store",
-                        default=7979,
-                        help='SSH Listener Port (Default: 7979)',
+                        default=4001,
+                        help='SSH Listener Port (Default: 4001)',
+                        type=int,
+                        )
+    parser.add_argument('-stp', action="store",
+                        default=4002,
+                        help='Secure Telnet Listener Port (Default: 4002)',
                         type=int,
                         )
     parser.add_argument('-wsp', action="store",
@@ -142,6 +157,32 @@ if __name__ == "__main__":
             process_factory=clients.client_ssh_handler,
             keepalive_interval=10,
             login_timeout=3600,))
+
+    # for testing ssl server
+    # This is like telnet localhost:12345 but using your cert and key
+    # openssl s_client -connect localhost:12345
+
+    if not args.st:
+        st_port = args.stp
+        log.info(f"frontend.py:__main__ - Creating client Secure Telnet listener on port {st_port}")
+
+        ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_ctx.options |= ssl.OP_NO_TLSv1
+        ssl_ctx.options |= ssl.OP_NO_TLSv1_1
+        ssl_ctx.options |= ssl.OP_SINGLE_DH_USE
+        ssl_ctx.options |= ssl.OP_SINGLE_ECDH_USE
+        ssl_ctx.load_cert_chain('server_cert.pem', keyfile='server_key.pem')
+        # ssl_ctx.load_verify_locations(cafile='server_ca.pem')
+        ssl_ctx.check_hostname = False
+        # ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
+        ssl_ctx.set_ciphers("ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384")
+        loop = asyncio.get_event_loop()
+        secure_telnet = asyncio.start_server(clients.client_stp_handler,
+                                             "localhost",
+                                             st_port,
+                                             ssl=ssl_ctx,
+                                             ssl_handshake_timeout=5.0)
+        all_servers.append(secure_telnet)
 
     ws_port = args.wsp
     log.info(f"frontend.py:__main__ - Creating game engine websocket listener on port {ws_port}")
