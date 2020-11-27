@@ -18,11 +18,11 @@ from uuid import uuid4
 
 # Third Party
 import asyncssh
-from telnetlib3 import WONT, ECHO, IAC, GA
 
 # Project
-from messages import Message, messages_to_clients, messages_to_game
 from keys import WS_SECRET
+from messages import Message, messages_to_clients, messages_to_game
+import protocols
 
 log: logging.Logger = logging.getLogger(__name__)
 
@@ -187,7 +187,11 @@ async def client_stp_read(reader, connection):
             log.info(f'Connection terminated with {connection.addr}')
             connection.state["connected"] = False
 
-        inp = inp.decode()
+        if inp.startswith(protocols.IAC):
+            protocols.decode(inp)
+            continue
+        else:
+            inp = inp.decode()
 
         payload = {
             "uuid": connection.uuid,
@@ -216,9 +220,9 @@ async def client_write(writer, connection):
         if msg_obj.is_io:
             writer.write(msg_obj.msg)
             if msg_obj.is_prompt:
-                writer.send_ga()
+                writer.write(protocols.ga())
         elif msg_obj.is_command_telnet:
-            writer.iac(msg_obj.command[0], msg_obj.command[1])
+            writer.write(protocols.iac([msg_obj.command]))
 
         asyncio.create_task(writer.drain())
 
@@ -232,9 +236,10 @@ async def client_stp_write(writer, connection):
     """
     while connection.state["connected"]:
         msg_obj = await messages_to_clients[connection.uuid].get()
-        writer.write(msg_obj.msg.encode())
-        if msg_obj.is_prompt:
-            writer.write(IAC+GA)
+        if msg_obj.is_io:
+            writer.write(msg_obj.msg.encode())
+            if msg_obj.is_prompt:
+                writer.write(protocols.ga())
 
         asyncio.create_task(writer.drain())
 
@@ -294,9 +299,6 @@ async def client_telnet_handler(reader, writer):
     # Need to work on better telnet support for regular old telnet clients.
     # Everything so far works great in Mudlet.  Just saying....
 
-    # We send an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
-    writer.iac(WONT, ECHO)
-
     connection = PlayerConnection(addr, port, "telnet", rows)
 
     await register_client(connection)
@@ -307,6 +309,11 @@ async def client_telnet_handler(reader, writer):
     ]
 
     asyncio.current_task().set_name(f"{connection.uuid} ssh handler")
+
+    # We send an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
+    writer.write(protocols.echo_on())
+
+    await writer.drain()
 
     # We want to .wait until the first task is completed.  Completed could be an actual finishing
     # of execution or an exception.  If either the read or writer "completes", we want to ensure
@@ -346,6 +353,14 @@ async def client_stp_handler(reader, writer):
     ]
 
     asyncio.current_task().set_name(f"{connection.uuid} stp handler")
+
+    # We send an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
+    writer.write(protocols.echo_on())
+
+    # Advertise to the client that we will do features we are capable of.
+    writer.write(protocols.advertise_features())
+
+    await writer.drain()
 
     # We want to .wait until the first task is completed.  Completed could be an actual finishing
     # of execution or an exception.  If either the read or writer "completes", we want to ensure
