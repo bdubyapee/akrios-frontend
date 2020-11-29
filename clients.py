@@ -23,8 +23,9 @@ import asyncssh
 from keys import WS_SECRET
 from messages import Message, messages_to_clients, messages_to_game
 import protocols
+import statistics
 
-log: logging.Logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 connections = {}
 
@@ -123,6 +124,7 @@ async def register_client(connection):
     """
     connections[connection.uuid] = connection
     messages_to_clients[connection.uuid] = asyncio.Queue()
+    statistics.player_count += 1
 
     await connection.notify_connected()
 
@@ -135,10 +137,12 @@ async def unregister_client(connection):
         connections.pop(connection.uuid)
         messages_to_clients.pop(connection.uuid)
 
+        statistics.player_count -= 1
+
         await connection.notify_disconnected()
 
 
-async def client_read(reader, connection):
+async def client_read(reader, writer, connection):
     """
         Utilized by the Telnet and SSH client_handlers.
 
@@ -150,6 +154,7 @@ async def client_read(reader, connection):
     """
     while connection.state["connected"]:
         inp = await reader.readline()
+        log.info(f"Raw received data in client_read : {inp}")
 
         if not inp:  # This is an EOF.  Hard disconnect.
             connection.state["connected"] = False
@@ -170,7 +175,7 @@ async def client_read(reader, connection):
         asyncio.create_task(messages_to_game.put(Message("IO", message=json.dumps(msg, sort_keys=True, indent=4))))
 
 
-async def client_stp_read(reader, connection):
+async def client_stp_read(reader, writer, connection):
     """
         Utilized by the Secure Telnet client_stp_handler.
 
@@ -188,8 +193,8 @@ async def client_stp_read(reader, connection):
             connection.state["connected"] = False
 
         if inp.startswith(protocols.IAC):
-            protocols.decode(inp)
-            continue
+            opcodes, inp = protocols.split_opcode_from_input(inp)
+            await protocols.handle(opcodes, connection, writer)
         else:
             inp = inp.decode()
 
@@ -262,7 +267,7 @@ async def client_ssh_handler(process):
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_read(reader, connection), name=f"{connection.uuid} ssh read"),
+        asyncio.create_task(client_read(reader, writer, connection), name=f"{connection.uuid} ssh read"),
         asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} ssh write"),
     ]
 
@@ -291,7 +296,6 @@ async def client_telnet_handler(reader, writer):
     """
     log.debug(f"clients.py:client_telnet_handler - telnet details are: {dir(reader)}")
     client_details = writer.get_extra_info("peername")
-    rows = writer.get_extra_info("rows")
 
     addr, port, *rest = client_details
     log.info(f"Connection established with {addr} : {port} : {rest}")
@@ -299,12 +303,12 @@ async def client_telnet_handler(reader, writer):
     # Need to work on better telnet support for regular old telnet clients.
     # Everything so far works great in Mudlet.  Just saying....
 
-    connection = PlayerConnection(addr, port, "telnet", rows)
+    connection = PlayerConnection(addr, port, "telnet")
 
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_read(reader, connection), name=f"{connection.uuid} telnet read"),
+        asyncio.create_task(client_read(reader, writer, connection), name=f"{connection.uuid} telnet read"),
         asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} telnet write"),
     ]
 
@@ -312,6 +316,9 @@ async def client_telnet_handler(reader, writer):
 
     # We send an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
     writer.write(protocols.echo_on())
+
+    # Advertise to the client that we will do features we are capable of.
+    writer.write(protocols.advertise_features())
 
     await writer.drain()
 
@@ -348,7 +355,7 @@ async def client_stp_handler(reader, writer):
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_stp_read(reader, connection), name=f"{connection.uuid} stp read"),
+        asyncio.create_task(client_stp_read(reader, writer, connection), name=f"{connection.uuid} stp read"),
         asyncio.create_task(client_stp_write(writer, connection), name=f"{connection.uuid} stp write"),
     ]
 
@@ -371,7 +378,8 @@ async def client_stp_handler(reader, writer):
     # from the registration list and perform connection specific cleanup.
     await unregister_client(connection)
 
-    writer.write_eof()
+    # XXX Verify how to properly close this SSL/TLS session XXX
+
     await writer.drain()
     writer.close()
 

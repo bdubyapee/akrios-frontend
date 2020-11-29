@@ -36,6 +36,7 @@ import asyncio
 import logging
 import signal
 import ssl
+from time import time
 
 # Third Party
 import asyncssh
@@ -46,6 +47,7 @@ import websockets
 import clients
 from keys import passphrase as ca_phrase
 import servers
+import statistics
 
 
 async def shutdown(signal_, loop_):
@@ -76,7 +78,7 @@ def handle_exceptions(loop_, context):
     """
     msg = context.get("exception", context["message"])
     log.warning(f"frontend.py:handle_exceptions - Caught exception: {msg} in loop: {loop_}")
-    log.warning(f"frontend.py:handle_exceptions - Caught in task: {asyncio.current_task().get_name()}")
+    log.warning(f"frontend.py:handle_exceptions - Caught in task: {asyncio.current_task()}")
 
 
 if __name__ == "__main__":
@@ -187,6 +189,8 @@ if __name__ == "__main__":
     all_servers.append(websockets.serve(servers.ws_handler, "localhost", ws_port))
 
     log.info("frontend.py:__main__ - Launching game front end loop:\n\r")
+
+    statistics.startup_time = int(time())
 
     for server in all_servers:
         loop.run_until_complete(server)
