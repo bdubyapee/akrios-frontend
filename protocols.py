@@ -61,8 +61,8 @@ code_by_byte = {ord(v): k for k, v in code.items()}
 
 
 # MSSP Definitions
-MSSP_VAR = "1"
-MSSP_VAL = "2"
+MSSP_VAR = bytes([1])
+MSSP_VAL = bytes([2])
 
 # Game capabilities to advertise
 GAME_CAPABILITIES = ['MSSP']
@@ -73,14 +73,17 @@ def iac(codes):
     """
     Used to build commands on the fly.
     """
-    command = b""
+    command = []
+
     for each_code in codes:
         if type(each_code) == str:
-            command += each_code.encode()
+            command.append(each_code.encode())
         elif type(each_code) == int:
-            command += str(each_code).encode()
+            command.append(str(each_code).encode())
         else:
-            command += each_code
+            command.append(each_code)
+
+    command = b''.join(command)
 
     return IAC+command
 
@@ -89,7 +92,8 @@ def iac_sb(codes):
     """
     Used to build Sub-Negotiation commands on the fly.
     """
-    command = [b""]
+    command = []
+
     for each_code in codes:
         if type(each_code) == str:
             command.append(each_code.encode())
@@ -97,8 +101,8 @@ def iac_sb(codes):
             command.append(str(each_code).encode())
         else:
             command.append(each_code)
-    command.append(b"")
-    command = b' '.join(command)
+
+    command = b''.join(command)
 
     return IAC + SB + command + IAC + SE
 
