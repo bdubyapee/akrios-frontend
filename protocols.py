@@ -145,15 +145,61 @@ def ga():
 
 # Opcode operations functions.
 def do_mssp():
-    startup_time = statistics.startup_time
-    count = statistics.player_count
-    name = statistics.mud_name.encode()
-    output = iac_sb([MSSP,
-                     MSSP_VAR, "PLAYERS".encode(), MSSP_VAL, count,
-                     MSSP_VAR, "UPTIME".encode(), MSSP_VAL, startup_time,
-                     MSSP_VAR, "NAME".encode(), MSSP_VAL, name])
+    mssp_values = {"NAME": statistics.mud_name,
+                   "PLAYERS": statistics.player_count,
+                   "UPTIME": statistics.startup_time,
+                   "CODEBASE": "AkriosMUD",
+                   "CONTACT": "phippsb@gmail.com",
+                   "CRAWL DELAY": -1,
+                   "CREATED": 2002,
+                   "HOSTNAME": -1,
+                   "ICON": -1,
+                   "IP": -1,
+                   "IPV6": -1,
+                   "LANGUAGE": "English",
+                   "LOCATION": "United States of America",
+                   # "MINIMUM AGE": -1,
+                   "PORT": [4000, 4001, 4002],
+                   "REFERRAL": -1,
+                   "WEBSITE": -1,
+                   "FAMILY": "Custom",
+                   "GENRE": "Fantasy",
+                   "GAMEPLAY": "Adventure",
+                   "STATUS": "Alpha",
+                   "GAMESYSTEM": "None",
+                   "INTERMUD": "Grapevine",
+                   "SUBGENRE": "High Fantasy",
+                   "AREAS": 1,
+                   "HELPFILES": 60,
+                   "MOBILES": 1,
+                   "OBJECTS": 1,
+                   "ROOMS": 20,
+                   "CLASSES": 5,
+                   "LEVELS": 50,
+                   "RACES": 5,
+                   "SKILLS": 1,
+                   "ANSI": 1,
+                   "MSP": 0,
+                   "UTF-8": 1,
+                   "VT100": 0,
+                   "XTERM 256 COLORS": 0,
+                   "XTERM TRUE COLORS": 0,
+                   "PAY TO PLAY": 0,
+                   "PAY FOR PERKS": 0,
+                   "HIRING BUILDERS": 0,
+                   "HIRING CODERS": 0
+                   }
 
-    return output
+    codes = [MSSP]
+
+    for k, v in mssp_values.items():
+        if type(v) == list:
+            for each_val in v:
+                codes.extend([MSSP_VAR, k.encode(), MSSP_VAL, each_val])
+        else:
+            codes.extend([MSSP_VAR, k.encode(), MSSP_VAL, v])
+
+    return iac_sb(codes)
 
 
 # Define a dictionary of responses to various received opcodes.
