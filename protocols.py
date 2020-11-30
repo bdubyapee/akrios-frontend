@@ -8,7 +8,7 @@
 """
     Housing various Telnet elements and MUD protocols.  I don't believe we really need
     to go full blown Telnet with all capabilities.  We'll try and create a useful subset
-    of the protocol useful for MUDs.  We will also add in various MUD protocols.
+    of the protocol useful for MUDs.  We will also add in various MUD protocols such as MSSP and GMCP.
 """
 
 # Standard Library
@@ -109,7 +109,7 @@ def iac_sb(codes):
 
 def split_opcode_from_input(data):
     """
-    This one will need some love once we get into subnegotiation, ie NAWS.
+    This one will need some love once we get into sub negotiation, ie NAWS.
     """
     log.info(f"Received raw data (len={len(data)}) of: {data}")
     opcodes = b''
@@ -211,8 +211,7 @@ main_negotiations = (WILL, WONT, DO, DONT)
 
 # Primary function for decoding and handling received opcodes.
 async def handle(opcodes, connection, writer):
-    codes = opcodes.split(IAC)
-    for each_code in codes:
+    for each_code in opcodes.split(IAC):
         if each_code and each_code in opcode_match:
             result = opcode_match[each_code]()
             log.info(f"Responding to previous opcode with: {result}")
