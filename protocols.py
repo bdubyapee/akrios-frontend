@@ -89,16 +89,18 @@ def iac_sb(codes):
     """
     Used to build Sub-Negotiation commands on the fly.
     """
-    command = b""
+    command = [b""]
     for each_code in codes:
         if type(each_code) == str:
-            command += each_code.encode()
+            command.append(each_code.encode())
         elif type(each_code) == int:
-            command += str(each_code).encode()
+            command.append(str(each_code).encode())
         else:
-            command += each_code
+            command.append(each_code)
+    command.append(b"")
+    command = b' '.join(command)
 
-    return IAC+SB+command+IAC+SE
+    return IAC + SB + command + IAC + SE
 
 
 def split_opcode_from_input(data):
@@ -121,6 +123,7 @@ def advertise_features():
     features = b""
     for each_feature in GAME_CAPABILITIES:
         features += features+IAC+WILL+code[each_feature]
+    log.info(f"Advertising features: {features}")
     return features
 
 
@@ -141,7 +144,8 @@ def do_mssp():
     startup_time = statistics.startup_time
     count = statistics.player_count
     name = statistics.mud_name.encode()
-    output = iac_sb([MSSP, MSSP_VAR, "PLAYERS".encode(), MSSP_VAL, count,
+    output = iac_sb([MSSP,
+                     MSSP_VAR, "PLAYERS".encode(), MSSP_VAL, count,
                      MSSP_VAR, "UPTIME".encode(), MSSP_VAL, startup_time,
                      MSSP_VAR, "NAME".encode(), MSSP_VAL, name])
 
