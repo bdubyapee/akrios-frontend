@@ -5,7 +5,7 @@ accepts Telnet, "Secure Telnet", and SSH connections for client connectivity.  T
 
 The front end is built using the Python asyncio module and aims to be concurrent. Both Akrios-II and this Front End require Python 3.8+.
 
-All testing, to date, it performed using the Mudlet mud client.
+All testing, to date, it performed using the Mudlet MUD client.
 
 
 
@@ -41,7 +41,7 @@ Second a certificate and key will need to be created for the "Secure Telnet" SSL
 openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout server_key.pem -out server_cert.pem
 ```
 
-You will need to create a websocket secret key to use between the front end and the game engine as well as provide the passphrase you used during SSH keygen.  Create a keys.py with the following information.
+Third, you will need to create a websocket secret key to use between the front end and the game engine as well as provide the passphrase you used during SSH keygen.  Create a keys.py with the following information.
 
 ```
 WS_SECRET = ""     <- This can be anything, I use a uuid4 (Needs to match MUD Engine)

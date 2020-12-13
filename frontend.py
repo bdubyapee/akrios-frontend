@@ -7,7 +7,7 @@
 # By: Jubelo
 """
     Front End utilized for separating server(connectivity) and game logic for Akrios.
-    End game is to have several front ends available (Telnet, Secure Telnet, SSH, Web, etc)
+    End game is to have several front ends available (Telnet, Secure Telnet, SSH, Web Client)
 
     Currently we handle Telnet, Secure Telnet and SSH clients.
 
@@ -22,7 +22,7 @@
     ! ssh-keygen -t rsa -b 4096 -o -a 100
 
     A portion of the Secure (SSL/TLS) Telnet code was lifted from https://github.com/zapstar
-    I do not see any licensing any information on his project so placing credit here.
+    I do not see any licensing information on his project so placing credit here.
 
     Secure Telnet Details
     ! Create Certificate and key for SSL context (Secure Telnet)

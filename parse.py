@@ -17,7 +17,7 @@ import subprocess
 import time
 
 # Third Party
-from telnetlib3 import WILL, WONT, ECHO
+from protocols import WILL, WONT, ECHO
 
 # Project
 from messages import Message, messages_to_clients

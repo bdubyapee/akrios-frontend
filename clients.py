@@ -323,7 +323,7 @@ async def client_telnet_handler(reader, writer):
     await writer.drain()
 
     # We want to .wait until the first task is completed.  Completed could be an actual finishing
-    # of execution or an exception.  If either the read or writer "completes", we want to ensure
+    # of execution or an exception.  If either the reader or writer "completes", we want to ensure
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
@@ -370,15 +370,13 @@ async def client_stp_handler(reader, writer):
     await writer.drain()
 
     # We want to .wait until the first task is completed.  Completed could be an actual finishing
-    # of execution or an exception.  If either the read or writer "completes", we want to ensure
+    # of execution or an exception.  If either the reader or writer "completes", we want to ensure
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
     # Once we reach this point one of our tasks (reader/writer) have completed or failed.  Remove client
     # from the registration list and perform connection specific cleanup.
     await unregister_client(connection)
-
-    # XXX Verify how to properly close this SSL/TLS session XXX
 
     await writer.drain()
     writer.close()

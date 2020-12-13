@@ -24,7 +24,7 @@ import clients
 from keys import WS_SECRET
 import parse
 
-log: logging.Logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 connections = {}
 
