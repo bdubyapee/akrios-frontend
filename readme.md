@@ -3,7 +3,7 @@
 Akrios-II is a Multi-User Dungeon(MUD) written entirely in Python 3.  **This** project is the front end for Akrios-II which
 accepts Telnet, "Secure Telnet", and SSH connections for client connectivity.  This front end facilitates input/output between the MUD engine and clients and also provides MSSP protocol for clients and "MUD Crawlers".  
 
-The front end is built using the Python asyncio module and aims to be concurrent. Both Akrios-II and this Front End require Python 3.8+.
+The front end is built using the Python asyncio module and aims to be concurrent. Both Akrios-II and this front end require Python 3.8+.
 
 All testing, to date, it performed using the Mudlet MUD client.
 
@@ -29,13 +29,13 @@ pip3 install -r requirements.txt
 
 There are three steps you need to complete prior to running the front end.  
 
-First, a local SSH key will need to be created, named 'akrios_ca', for that portion of the connectivity.  You should use a passphrase when creating the key.
+First, a local SSH key will need to be created, named 'akrios_ca', for client SSH connectivity.  You should use a passphrase when creating the key.
 
 ```
 ssh-keygen -t rsa -b 4096 -o -a 100
 ```
 
-Second a certificate and key will need to be created for the "Secure Telnet" SSL/TLS context
+Second a certificate and key will need to be created for the client "Secure Telnet" SSL/TLS context.
 
 ```
 openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout server_key.pem -out server_cert.pem
