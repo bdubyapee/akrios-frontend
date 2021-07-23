@@ -1,7 +1,7 @@
 # Akrios-II Front End
 
 Akrios-II is a Multi-User Dungeon(MUD) written entirely in Python 3.  **This** project is the front end for Akrios-II which
-accepts Telnet, "Secure Telnet", and SSH connections for client connectivity.  This front end facilitates input/output between the MUD engine and clients and also provides MSSP protocol for clients and "MUD Crawlers".  
+accepts Telnet, "Secure Telnet", and SSH connections for client connectivity and provides communication to the mud engine via JSON over websockets.  This fron end  also provides MSSP protocol for clients and "MUD Crawlers".  
 
 The front end is built using the Python asyncio module and aims to be concurrent. Both Akrios-II and this front end require Python 3.8+.
 
