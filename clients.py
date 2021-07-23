@@ -32,7 +32,7 @@ connections = {}
 
 class PlayerConnection(object):
     """
-        Each connection when created in async handle_client will instance this.
+        Each connection when created in async handle_client will instantiate this class.
 
         Instance variables:
             self.addr is the IP address portion of the client
@@ -273,7 +273,7 @@ async def client_ssh_handler(process):
 
     asyncio.current_task().set_name(f"{connection.uuid} ssh handler")
 
-    # We want to .wait until the first task is completed.  Completed could be an actual finishing
+    # We want to .wait until the first task is completed.  "Completed" could be an actual finishing
     # of execution or an exception.  If either the read or writer "completes", we want to ensure
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
@@ -322,7 +322,7 @@ async def client_telnet_handler(reader, writer):
 
     await writer.drain()
 
-    # We want to .wait until the first task is completed.  Completed could be an actual finishing
+    # We want to .wait until the first task is completed.  "Completed" could be an actual finishing
     # of execution or an exception.  If either the reader or writer "completes", we want to ensure
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
@@ -369,7 +369,7 @@ async def client_stp_handler(reader, writer):
 
     await writer.drain()
 
-    # We want to .wait until the first task is completed.  Completed could be an actual finishing
+    # We want to .wait until the first task is completed.  "Completed" could be an actual finishing
     # of execution or an exception.  If either the reader or writer "completes", we want to ensure
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")

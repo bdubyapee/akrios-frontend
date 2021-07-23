@@ -58,7 +58,7 @@ async def msg_players_output(payload):
 
 async def msg_players_sign_in(payload):
     """
-        We have received a player sign-in from the game engine.  We assign that authenticated name
+        We have received a successful player sign-in from the game engine.  We assign that authenticated name
         to the session.  Use for tracking during softboots.
     """
     player = payload["name"]
@@ -92,15 +92,14 @@ async def msg_player_session_command(payload):
     """
     session = payload["uuid"]
     command = payload["command"]
-    if session in clients.connections:
-        if clients.connections[session].conn_type == "telnet":
+    if session in clients.connections and clients.connections[session].conn_type == "telnet":
+        iac_cmd = (WONT, ECHO)
+        if command == "dont echo":
+            iac_cmd = (WILL, ECHO)
+        elif command == "do echo":
             iac_cmd = (WONT, ECHO)
-            if command == "dont echo":
-                iac_cmd = (WILL, ECHO)
-            if command == "do echo":
-                iac_cmd = (WONT, ECHO)
 
-            asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", command=iac_cmd)))
+        asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", command=iac_cmd)))
 
 
 async def msg_game_softboot(payload):

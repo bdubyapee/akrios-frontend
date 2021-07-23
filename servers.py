@@ -6,7 +6,7 @@
 #
 # By: Jubelo
 """
-    Housing the Class(es) and coroutines for building and maintaining a websocket connection with
+    Housing the Class(es) and coroutines for receiving and maintaining a websocket connection with
     the game engine.
 """
 
@@ -31,7 +31,8 @@ connections = {}
 
 class GameConnection(object):
     """
-        Each connection when created in async ws_handler will instance this class.
+        Each connection when created in async ws_handler will instance this class.  This needs flushed out
+        more for smoother soft boot operation. **
 
         Instance variables:
             self.state is the current state of the game connection
@@ -82,7 +83,7 @@ async def softboot_connection_list(websocket_):
     """
         When a game connects to this front end, part of the handler's responsibility
         is to verify if there are current connections to this front end.  If so then we may
-        assume that the game/FE have performed a "soft boot", or the game was restarted.
+        assume that the game/FE have performed a "soft boot", or the game was restarted after a crash.
 
         Create a JSON message to the game to indicate the session ID to player name mapping
         so that the player(s) may be logged back in automatically.
@@ -105,7 +106,7 @@ async def ws_read(websocket_, game_connection):
     """
         We want this coroutine to run while the game is connected, so we begin with a while loop.
         We first await control back to the main loop until we have received some data from the game.
-        Create task to parse / handle the message from the game engine.
+        We then create a task to parse / handle the message from the game engine.
     """
     while game_connection.state["connected"]:
         if data := await websocket_.recv():
@@ -152,10 +153,10 @@ async def ws_handler(websocket_, path):
 
     asyncio.current_task().set_name(f"WS: {game_connection.uuid} handler")  # type: ignore
 
-    # When a game connection to this front end happens, we make an assumption that if have
+    # When a game connection to this front end happens, we make an assumption that if we have
     # clients in clients.PlayerConnection.connections that the game has "softboot"ed or has
     # crashed and restarted.  Await a coroutine which informs the game of those client
-    # details so that they can be automatically logged back in.
+    # details so that they can be automatically logged back in within the engine.
     if clients.connections:
         log.debug("servers.py:ws_handler - Game connected to Front End.  Clients exist, await softboot_connection_list")
         await softboot_connection_list(websocket_)

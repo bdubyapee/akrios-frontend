@@ -2,12 +2,13 @@
 # Project: akrios-frontend
 # Filename: frontend.py
 #
-# File Description: Main launching point for the connection front end to Akrios.
+# File Description: Main launching point for the connection front end to Akrios-II.
 #
 # By: Jubelo
 """
-    Front End utilized for separating server(connectivity) and game logic for Akrios.
-    End game is to have several front ends available (Telnet, Secure Telnet, SSH, Web Client)
+    Front End utilized for separating server(connectivity) and game logic for Akrios-II.
+    The end game of this front end is to have several client connection optinos available (Telnet, Secure Telnet,
+    SSH and Web Client)/
 
     Currently we handle Telnet, Secure Telnet and SSH clients.
 
@@ -176,7 +177,7 @@ if __name__ == "__main__":
         ssl_ctx.check_hostname = False
         # ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
         ssl_ctx.set_ciphers("ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384")
-        loop = asyncio.get_event_loop()
+        # loop = asyncio.get_event_loop()
         secure_telnet = asyncio.start_server(clients.client_stp_handler,
                                              "localhost",
                                              st_port,
