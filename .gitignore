@@ -16,6 +16,7 @@
 .venv
 .idea
 .mypy_cache
+.python-version
 env/
 venv/
 ENV/
