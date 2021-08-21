@@ -7,7 +7,7 @@
 # By: Jubelo
 """
     Front End utilized for separating server(connectivity) and game logic for Akrios-II.
-    The end game of this front end is to have several client connection optinos available (Telnet, Secure Telnet,
+    The end game of this front end is to have several client connection options available (Telnet, Secure Telnet,
     SSH and Web Client)/
 
     Currently we handle Telnet, Secure Telnet and SSH clients.

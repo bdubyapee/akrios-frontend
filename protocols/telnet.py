@@ -18,7 +18,7 @@ from string import printable
 # Third Party
 
 # Project
-import mssp
+import protocols.mssp as mssp
 
 log: logging.Logger = logging.getLogger(__name__)
 
@@ -162,7 +162,7 @@ main_negotiations = (WILL, WONT, DO, DONT)
 
 
 # Primary function for decoding and handling received opcodes.
-async def handle(opcodes, connection, writer):
+async def handle(opcodes, writer):
     """
     This is the handler for opcodes we receive from the connected client.
     """

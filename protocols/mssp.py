@@ -7,7 +7,7 @@
 #
 # By: Jubelo
 """
-    A basic MSSP implementation.
+    A very basic MSSP implementation.
 """
 
 # Standard Library

@@ -194,7 +194,7 @@ async def client_stp_read(reader, writer, connection):
 
         if inp.startswith(telnet.IAC):
             opcodes, inp = telnet.split_opcode_from_input(inp)
-            await telnet.handle(opcodes, connection, writer)
+            await telnet.handle(opcodes, writer)
         else:
             inp = inp.decode()
 
