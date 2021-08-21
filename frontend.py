@@ -38,6 +38,7 @@ import logging
 import signal
 import ssl
 from time import time
+import uvloop
 
 # Third Party
 import asyncssh
@@ -49,6 +50,8 @@ import clients
 from keys import passphrase as ca_phrase
 import servers
 import statistics
+
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 
 async def shutdown(signal_, loop_):
@@ -131,13 +134,6 @@ if __name__ == "__main__":
     logging.basicConfig(format="%(asctime)s: %(name)s - %(levelname)s - %(message)s", level=log_level)
     log = logging.getLogger(__name__)
 
-    loop = asyncio.get_event_loop()
-
-    for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
-        loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(sig, loop)))
-
-    loop.set_exception_handler(handle_exceptions)
-
     all_servers = []
 
     if not args.t:
@@ -169,15 +165,12 @@ if __name__ == "__main__":
         log.info(f"frontend.py:__main__ - Creating client Secure Telnet listener on port {st_port}")
 
         ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        # ssl_ctx.options |= ssl.OP_NO_TLSv1      # Deprecated
-        # ssl_ctx.options |= ssl.OP_NO_TLSv1_1    # Deprecated
         ssl_ctx.options |= ssl.OP_SINGLE_DH_USE
         ssl_ctx.options |= ssl.OP_SINGLE_ECDH_USE
         ssl_ctx.load_cert_chain("server_cert.pem", keyfile="server_key.pem")
         ssl_ctx.check_hostname = False
         # ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
         ssl_ctx.set_ciphers("ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384")
-        # loop = asyncio.get_event_loop()
         secure_telnet = asyncio.start_server(clients.client_stp_handler,
                                              "localhost",
                                              st_port,
@@ -192,6 +185,13 @@ if __name__ == "__main__":
     log.info("frontend.py:__main__ - Launching game front end loop:\n\r")
 
     statistics.startup_time = int(time())
+
+    loop = asyncio.get_event_loop()
+
+    for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, lambda: asyncio.create_task(shutdown(sig, loop)))
+
+    loop.set_exception_handler(handle_exceptions)
 
     for server in all_servers:
         loop.run_until_complete(server)
