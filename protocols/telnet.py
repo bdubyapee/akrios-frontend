@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Project: akrios-frontend
-# Filename: protocols.py
+# Filename: telnet.py
 #
 # File Description: Consolidate various protocols.
 #
@@ -9,7 +9,7 @@
 """
     Housing various Telnet elements and MUD protocols.  I don't believe we really need
     to go full blown Telnet with all capabilities.  We'll try and create a useful subset
-    of the protocol useful for MUDs.  We will also add in various MUD protocols such as MSSP and GMCP.
+    of the protocol useful for MUDs.
 """
 
 # Standard Library
@@ -18,12 +18,12 @@ from string import printable
 # Third Party
 
 # Project
-import statistics
+import mssp
 
 log: logging.Logger = logging.getLogger(__name__)
 
 
-# Telnet protocol characters
+# Basic Telnet protocol opcodes. The MSSP character will be imported from it's module.
 IAC = bytes([255])  # "Interpret As Command"
 DONT = bytes([254])
 DO = bytes([253])
@@ -32,13 +32,13 @@ WILL = bytes([251])
 SB = bytes([250])  # Subnegotiation Begin
 GA = bytes([249])  # Go Ahead
 SE = bytes([240])  # Subnegotiation End
-MSSP = bytes([70])  # MSSP Mud Protocol
 CHARSET = bytes([42])  # CHARSET
 NAWS = bytes([31])  # window size
 EOR = bytes([25])  # end or record
 TTYPE = bytes([24])  # terminal type
 ECHO = bytes([1])  # echo
 theNULL = bytes([0])
+
 
 # Telnet protocol by string designators
 code = {'IAC':     bytes([255]),
@@ -59,11 +59,6 @@ code = {'IAC':     bytes([255]),
 
 # Telnet protocol, int representation as key, string designator value.
 code_by_byte = {ord(v): k for k, v in code.items()}
-
-
-# MSSP Definitions
-MSSP_VAR = bytes([1])
-MSSP_VAL = bytes([2])
 
 # Game capabilities to advertise
 GAME_CAPABILITIES = ['MSSP']
@@ -125,6 +120,10 @@ def split_opcode_from_input(data):
 
 
 def advertise_features():
+    """
+    Build and return a byte string of the features we are capable of and want to
+    advertise to the connecting client.
+    """
     features = b""
     for each_feature in GAME_CAPABILITIES:
         features += features+IAC+WILL+code[each_feature]
@@ -133,78 +132,30 @@ def advertise_features():
 
 
 def echo_off():
+    """
+    Return the Telnet opcode for IAC WILL ECHO.
+    """
     return IAC+WILL+ECHO
 
 
 def echo_on():
+    """
+    Return the Telnet opcode for IAC WONT ECHO.
+    """
     return IAC+WONT+ECHO
 
 
 def ga():
+    """
+    Return the Telnet opcode for IAC GA (Go Ahead) which some clients want to
+    see after each prompt so that they know we are done sending this particular block
+    of text o them.
+    """
     return IAC+GA
 
 
-# Opcode operations functions.
-def do_mssp():
-    mssp_values = {"NAME": statistics.mud_name,
-                   "PLAYERS": statistics.player_count,
-                   "UPTIME": statistics.startup_time,
-                   "CODEBASE": "AkriosMUD",
-                   "CONTACT": "phippsb@gmail.com",
-                   "CRAWL DELAY": -1,
-                   "CREATED": 2002,
-                   "HOSTNAME": -1,
-                   "ICON": -1,
-                   "IP": -1,
-                   "IPV6": -1,
-                   "LANGUAGE": "English",
-                   "LOCATION": "United States of America",
-                   # "MINIMUM AGE": -1,
-                   "PORT": [4000, 4001, 4002],
-                   "REFERRAL": -1,
-                   "WEBSITE": -1,
-                   "FAMILY": "Custom",
-                   "GENRE": "Fantasy",
-                   "GAMEPLAY": "Adventure",
-                   "STATUS": "Alpha",
-                   "GAMESYSTEM": "None",
-                   "INTERMUD": "Grapevine",
-                   "SUBGENRE": "High Fantasy",
-                   "AREAS": 1,
-                   "HELPFILES": 60,
-                   "MOBILES": 1,
-                   "OBJECTS": 1,
-                   "ROOMS": 20,
-                   "CLASSES": 5,
-                   "LEVELS": 50,
-                   "RACES": 5,
-                   "SKILLS": 1,
-                   "ANSI": 1,
-                   "MSP": 0,
-                   "UTF-8": 1,
-                   "VT100": 0,
-                   "XTERM 256 COLORS": 0,
-                   "XTERM TRUE COLORS": 0,
-                   "PAY TO PLAY": 0,
-                   "PAY FOR PERKS": 0,
-                   "HIRING BUILDERS": 0,
-                   "HIRING CODERS": 0
-                   }
-
-    codes = [MSSP]
-
-    for k, v in mssp_values.items():
-        if type(v) == list:
-            for each_val in v:
-                codes.extend([MSSP_VAR, k.encode(), MSSP_VAL, each_val])
-        else:
-            codes.extend([MSSP_VAR, k.encode(), MSSP_VAL, v])
-
-    return iac_sb(codes)
-
-
 # Define a dictionary of responses to various received opcodes.
-opcode_match = {DO + MSSP: do_mssp}
+opcode_match = {DO + mssp.MSSP: mssp.mssp_response}
 
 # Future.
 main_negotiations = (WILL, WONT, DO, DONT)
@@ -212,9 +163,12 @@ main_negotiations = (WILL, WONT, DO, DONT)
 
 # Primary function for decoding and handling received opcodes.
 async def handle(opcodes, connection, writer):
+    """
+    This is the handler for opcodes we receive from the connected client.
+    """
     for each_code in opcodes.split(IAC):
         if each_code and each_code in opcode_match:
-            result = opcode_match[each_code]()
+            result = iac_sb(opcode_match[each_code]())
             log.info(f"Responding to previous opcode with: {result}")
             writer.write(result)
             await writer.drain()

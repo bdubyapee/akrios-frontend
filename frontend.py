@@ -38,7 +38,7 @@ import logging
 import signal
 import ssl
 from time import time
-# import uvloop
+# import uvloop  # Future
 
 # Third Party
 import asyncssh
@@ -51,7 +51,7 @@ from keys import passphrase as ca_phrase
 import servers
 import statistics
 
-# asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+# asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())  # Future
 
 
 async def shutdown(signal_, loop_):

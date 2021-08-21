@@ -17,9 +17,9 @@ import subprocess
 import time
 
 # Third Party
-from protocols.protocols import WILL, WONT, ECHO
 
 # Project
+from protocols.telnet import WILL, WONT, ECHO
 from messages import Message, messages_to_clients
 import clients
 from keys import WS_SECRET

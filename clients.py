@@ -22,7 +22,7 @@ import asyncssh
 # Project
 from keys import WS_SECRET
 from messages import Message, messages_to_clients, messages_to_game
-from protocols import protocols
+from protocols import telnet
 import statistics
 
 log = logging.getLogger(__name__)
@@ -192,9 +192,9 @@ async def client_stp_read(reader, writer, connection):
             log.info(f'Connection terminated with {connection.addr}')
             connection.state["connected"] = False
 
-        if inp.startswith(protocols.IAC):
-            opcodes, inp = protocols.split_opcode_from_input(inp)
-            await protocols.handle(opcodes, connection, writer)
+        if inp.startswith(telnet.IAC):
+            opcodes, inp = telnet.split_opcode_from_input(inp)
+            await telnet.handle(opcodes, connection, writer)
         else:
             inp = inp.decode()
 
@@ -225,9 +225,9 @@ async def client_write(writer, connection):
         if msg_obj.is_io:
             writer.write(msg_obj.msg)
             if msg_obj.is_prompt:
-                writer.write(protocols.ga())
+                writer.write(telnet.ga())
         elif msg_obj.is_command_telnet:
-            writer.write(protocols.iac([msg_obj.command]))
+            writer.write(telnet.iac([msg_obj.command]))
 
         asyncio.create_task(writer.drain())
 
@@ -244,7 +244,7 @@ async def client_stp_write(writer, connection):
         if msg_obj.is_io:
             writer.write(msg_obj.msg.encode())
             if msg_obj.is_prompt:
-                writer.write(protocols.ga())
+                writer.write(telnet.ga())
 
         asyncio.create_task(writer.drain())
 
@@ -315,10 +315,10 @@ async def client_telnet_handler(reader, writer):
     asyncio.current_task().set_name(f"{connection.uuid} ssh handler")
 
     # We send an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
-    writer.write(protocols.echo_on())
+    writer.write(telnet.echo_on())
 
     # Advertise to the client that we will do features we are capable of.
-    writer.write(protocols.advertise_features())
+    writer.write(telnet.advertise_features())
 
     await writer.drain()
 
@@ -362,10 +362,10 @@ async def client_stp_handler(reader, writer):
     asyncio.current_task().set_name(f"{connection.uuid} stp handler")
 
     # We send an IAC+WONT+ECHO to the client so that it locally echo's it's own input.
-    writer.write(protocols.echo_on())
+    writer.write(telnet.echo_on())
 
     # Advertise to the client that we will do features we are capable of.
-    writer.write(protocols.advertise_features())
+    writer.write(telnet.advertise_features())
 
     await writer.drain()
 
