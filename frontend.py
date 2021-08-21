@@ -1,4 +1,4 @@
-#! usr/bin/env python
+# -*- coding: utf-8 -*-
 # Project: akrios-frontend
 # Filename: frontend.py
 #
