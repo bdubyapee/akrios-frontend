@@ -22,7 +22,7 @@ import asyncssh
 # Project
 from keys import WS_SECRET
 from messages import Message, messages_to_clients, messages_to_game
-import protocols
+from protocols import protocols
 import statistics
 
 log = logging.getLogger(__name__)

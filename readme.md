@@ -5,7 +5,7 @@ accepts Telnet, "Secure Telnet", and SSH connections for client connectivity and
 
 The front end is built using the Python asyncio module and aims to be concurrent. Both Akrios-II and this front end require Python 3.8+.
 
-All testing, to date, it performed using the Mudlet MUD client.
+All testing, to date, is performed using the Mudlet MUD client.
 
 
 

@@ -169,8 +169,8 @@ if __name__ == "__main__":
         log.info(f"frontend.py:__main__ - Creating client Secure Telnet listener on port {st_port}")
 
         ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        ssl_ctx.options |= ssl.OP_NO_TLSv1
-        ssl_ctx.options |= ssl.OP_NO_TLSv1_1
+        # ssl_ctx.options |= ssl.OP_NO_TLSv1      # Deprecated
+        # ssl_ctx.options |= ssl.OP_NO_TLSv1_1    # Deprecated
         ssl_ctx.options |= ssl.OP_SINGLE_DH_USE
         ssl_ctx.options |= ssl.OP_SINGLE_ECDH_USE
         ssl_ctx.load_cert_chain("server_cert.pem", keyfile="server_key.pem")
