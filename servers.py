@@ -18,9 +18,9 @@ from uuid import uuid4
 
 # Project
 import clients
-import parse
 from keys import WS_SECRET
-from messages import messages_to_game
+from messaging.messages import messages_to_game
+from messaging import parse
 
 # Third Party
 

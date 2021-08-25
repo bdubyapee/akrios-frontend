@@ -21,6 +21,18 @@ repos:
           language: system
           always_run: true
           pass_filenames: true
+        - id: pylint-messaging
+          name: pylint 🔎
+          entry: bash -c 'pylint --fail-under=9.5 ./messaging/*.py'
+          language: system
+          always_run: true
+          pass_filenames: true
+        - id: pylint-protocols
+          name: pylint 🔎
+          entry: bash -c 'pylint --fail-under=9.5 ./protocols/*.py'
+          language: system
+          always_run: true
+          pass_filenames: true
         - id: pytest
           name: Unit Tests 🧪
           entry: bash -c 'pytest ./tests/*.py'

@@ -21,7 +21,7 @@ import asyncssh
 
 # Project
 from keys import WS_SECRET
-from messages import Message, messages_to_clients, messages_to_game
+from messaging.messages import Message, messages_to_clients, messages_to_game
 from protocols import telnet
 
 log = logging.getLogger(__name__)
