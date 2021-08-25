@@ -16,6 +16,7 @@
 import logging
 from string import printable
 
+
 # Project
 from protocols import mssp
 
@@ -24,23 +25,23 @@ from protocols import mssp
 log: logging.Logger = logging.getLogger(__name__)
 
 # Basic Telnet protocol opcodes. The MSSP character will be imported from it's module.
-IAC = bytes([255])  # "Interpret As Command"
-DONT = bytes([254])
-DO = bytes([253])
-WONT = bytes([252])
-WILL = bytes([251])
-SB = bytes([250])  # Subnegotiation Begin
-GA = bytes([249])  # Go Ahead
-SE = bytes([240])  # Subnegotiation End
-CHARSET = bytes([42])  # CHARSET
-NAWS = bytes([31])  # window size
-EOR = bytes([25])  # end or record
-TTYPE = bytes([24])  # terminal type
-ECHO = bytes([1])  # echo
-theNULL = bytes([0])
+IAC: bytes = bytes([255])  # "Interpret As Command"
+DONT: bytes = bytes([254])
+DO: bytes = bytes([253])
+WONT: bytes = bytes([252])
+WILL: bytes = bytes([251])
+SB: bytes = bytes([250])  # Subnegotiation Begin
+GA: bytes = bytes([249])  # Go Ahead
+SE: bytes = bytes([240])  # Subnegotiation End
+CHARSET: bytes = bytes([42])  # CHARSET
+NAWS: bytes = bytes([31])  # window size
+EOR: bytes = bytes([25])  # end or record
+TTYPE: bytes = bytes([24])  # terminal type
+ECHO: bytes = bytes([1])  # echo
+theNULL: bytes = bytes([0])
 
 # Telnet protocol by string designators
-code = {
+code: dict[str, bytes] = {
     'IAC': bytes([255]),
     'DONT': bytes([254]),
     'DO': bytes([253]),
@@ -59,14 +60,14 @@ code = {
 }
 
 # Telnet protocol, int representation as key, string designator value.
-code_by_byte = {ord(v): k for k, v in code.items()}
+code_by_byte: dict[int, bytes] = {ord(v): k for k, v in code.items()}
 
 # Game capabilities to advertise
-GAME_CAPABILITIES = ['MSSP']
+GAME_CAPABILITIES: list[str] = ['MSSP']
 
 
 # Utility functions
-def iac(codes):
+def iac(codes) -> bytes:
     """
     Used to build commands on the fly.
     """
@@ -85,7 +86,7 @@ def iac(codes):
     return IAC + command
 
 
-def iac_sb(codes):
+def iac_sb(codes) -> bytes:
     """
     Used to build Sub-Negotiation commands on the fly.
     """
@@ -104,7 +105,7 @@ def iac_sb(codes):
     return IAC + SB + command + IAC + SE
 
 
-def split_opcode_from_input(data):
+def split_opcode_from_input(data) -> tuple[bytes, str]:
     """
     This one will need some love once we get into sub negotiation, ie NAWS.  Review
     iterating over the data and clean up the hot mess below.
@@ -122,7 +123,7 @@ def split_opcode_from_input(data):
     return opcodes, inp
 
 
-def advertise_features():
+def advertise_features() -> bytes:
     """
     Build and return a byte string of the features we are capable of and want to
     advertise to the connecting client.
@@ -134,21 +135,21 @@ def advertise_features():
     return features
 
 
-def echo_off():
+def echo_off() -> bytes:
     """
     Return the Telnet opcode for IAC WILL ECHO.
     """
     return IAC + WILL + ECHO
 
 
-def echo_on():
+def echo_on() -> bytes:
     """
     Return the Telnet opcode for IAC WONT ECHO.
     """
     return IAC + WONT + ECHO
 
 
-def go_ahead():
+def go_ahead() -> bytes:
     """
     Return the Telnet opcode for IAC GA (Go Ahead) which some clients want to
     see after each prompt so that they know we are done sending this particular block
@@ -158,14 +159,14 @@ def go_ahead():
 
 
 # Define a dictionary of responses to various received opcodes.
-opcode_match = {DO + mssp.MSSP: mssp.mssp_response}
+opcode_match: dict = {DO + mssp.MSSP: mssp.mssp_response}
 
 # Future.
-main_negotiations = (WILL, WONT, DO, DONT)
+main_negotiations: tuple = (WILL, WONT, DO, DONT)
 
 
 # Primary function for decoding and handling received opcodes.
-async def handle(opcodes, writer):
+async def handle(opcodes, writer) -> None:
     """
     This is the handler for opcodes we receive from the connected client.
     """
