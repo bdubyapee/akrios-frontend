@@ -17,10 +17,10 @@ import subprocess
 import time
 
 # Project
-import clients
+from clients import clients
 from keys import WS_SECRET
-from .messages import Message, messages_to_clients
 from protocols import telnet
+from .messages import Message, messages_to_clients
 
 # Third Party
 

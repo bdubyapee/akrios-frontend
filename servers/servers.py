@@ -17,10 +17,10 @@ import logging
 from uuid import uuid4
 
 # Project
-import clients
 from keys import WS_SECRET
 from messaging.messages import messages_to_game
 from messaging import parse
+from clients import clients
 
 # Third Party
 

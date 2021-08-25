@@ -17,7 +17,7 @@ repos:
           pass_filenames: true
         - id: pylint
           name: pylint 🔎
-          entry: bash -c 'pylint --fail-under=9.5 *.py'
+          entry: bash -c 'pylint --fail-under=9 *.py'
           language: system
           always_run: true
           pass_filenames: true
@@ -30,6 +30,18 @@ repos:
         - id: pylint-protocols
           name: pylint 🔎
           entry: bash -c 'pylint --fail-under=9.5 ./protocols/*.py'
+          language: system
+          always_run: true
+          pass_filenames: true
+        - id: pylint-clients
+          name: pylint 🔎
+          entry: bash -c 'pylint --fail-under=9.5 ./clients/*.py'
+          language: system
+          always_run: true
+          pass_filenames: true
+        - id: pylint-servers
+          name: pylint 🔎
+          entry: bash -c 'pylint --fail-under=9.5 ./servers/*.py'
           language: system
           always_run: true
           pass_filenames: true

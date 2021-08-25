@@ -45,8 +45,8 @@ import telnetlib3
 import websockets
 
 # Project
-import clients
-import servers
+from clients import clients
+from servers import servers
 from keys import PASSPHRASE
 
 
