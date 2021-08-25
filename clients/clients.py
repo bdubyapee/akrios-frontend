@@ -43,26 +43,26 @@ class PlayerConnection:
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
     def __init__(self, addr, port, conn_type, rows=24):
-        self.addr = addr
-        self.port = port
-        self.rows = rows
-        self.conn_type = conn_type
-        self.state = {"connected": True, "logged in": False}
-        self.name = ""
-        self.uuid = str(uuid4())
+        self.addr: str = addr
+        self.port: str = port
+        self.rows: int = rows
+        self.conn_type: str = conn_type
+        self.state: dict[str, bool] = {"connected": True, "logged in": False}
+        self.name: str = ""
+        self.uuid: str = str(uuid4())
 
-    async def notify_connected(self):
+    async def notify_connected(self) -> None:
         """
             Create JSON message to notify the game engine of a new client connection.
             Put this message into the messages_to_game asyncio.Queue().
         """
-        payload = {
+        payload: dict[str, str | int] = {
             "uuid": self.uuid,
             "addr": self.addr,
             "port": self.port,
             "rows": self.rows,
         }
-        msg = {
+        msg: dict[str, str] = {
             "event": "connection/connected",
             "secret": WS_SECRET,
             "payload": payload,
@@ -73,17 +73,17 @@ class PlayerConnection:
                 Message("IO",
                         message=json.dumps(msg, sort_keys=True, indent=4))))
 
-    async def notify_disconnected(self):
+    async def notify_disconnected(self) -> None:
         """
             Create JSON Payload to notify the game engine of a client disconnect.
             Put this message into the messages_to_game asyncio.Queue().
         """
-        payload = {
+        payload: dict[str, str | int] = {
             "uuid": self.uuid,
             "addr": self.addr,
             "port": self.port,
         }
-        msg = {
+        msg: dict[str, str] = {
             "event": "connection/disconnected",
             "secret": WS_SECRET,
             "payload": payload,
@@ -102,28 +102,28 @@ class MySSHServer(asyncssh.SSHServer):
 
     XXX Clean this up and document it.  Came from the asyncssh docs somewhere.
     """
-    def connection_made(self, conn):
+    def connection_made(self, conn) -> None:
         log.info("clients.py:MySShServer - SSH connection received from %s",
                  conn.get_extra_info("peername")[0])
 
-    def connection_lost(self, exc):
+    def connection_lost(self, exc) -> None:
         if exc:
             log.warning("clients.py:MySShServer - SSH connection error: %s",
                         str(exc))
         else:
             log.info("clients.py:MySShServer - SSH connection closed.")
 
-    def begin_auth(self, username):
+    def begin_auth(self, username) -> bool:
         return False
 
-    def password_auth_supported(self):
+    def password_auth_supported(self) -> bool:
         return True
 
-    def validate_password(self, username, password):
+    def validate_password(self, username, password) -> bool:
         return True
 
 
-async def register_client(connection):
+async def register_client(connection) -> None:
     """
         Upon a new client connection, we register it to the connections dict.
     """
@@ -133,7 +133,7 @@ async def register_client(connection):
     await connection.notify_connected()
 
 
-async def unregister_client(connection):
+async def unregister_client(connection) -> None:
     """
         Upon client disconnect/quit, we unregister it from the connections dict.
     """
@@ -144,7 +144,7 @@ async def unregister_client(connection):
         await connection.notify_disconnected()
 
 
-async def client_read(reader, connection):
+async def client_read(reader, connection) -> None:
     """
         Utilized by the Telnet and SSH client_handlers.
 
@@ -155,20 +155,20 @@ async def client_read(reader, connection):
             messages_to_game asyncio.Queue()
     """
     while connection.state["connected"]:
-        inp = await reader.readline()
+        inp: bytes = await reader.readline()
         log.info("Raw received data in client_read : %s", inp)
 
         if not inp:  # This is an EOF.  Hard disconnect.
             connection.state["connected"] = False
             return
 
-        payload = {
+        payload: dict[str, str | int] = {
             "uuid": connection.uuid,
             "addr": connection.addr,
             "port": connection.port,
             "msg": inp.strip(),
         }
-        msg = {
+        msg: dict[str, str] = {
             "event": "player/input",
             "secret": WS_SECRET,
             "payload": payload,
@@ -180,7 +180,7 @@ async def client_read(reader, connection):
                         message=json.dumps(msg, sort_keys=True, indent=4))))
 
 
-async def client_stp_read(reader, writer, connection):
+async def client_stp_read(reader, writer, connection) -> None:
     """
         Utilized by the Secure Telnet client_stp_handler.
 
@@ -191,7 +191,7 @@ async def client_stp_read(reader, writer, connection):
             messages_to_game asyncio.Queue()
     """
     while connection.state["connected"]:
-        inp = await reader.readline()
+        inp: bytes = await reader.readline()
 
         if not inp:
             log.info('Connection terminated with %s', connection.addr)
@@ -201,15 +201,15 @@ async def client_stp_read(reader, writer, connection):
             opcodes, inp = telnet.split_opcode_from_input(inp)
             await telnet.handle(opcodes, writer)
         else:
-            inp = inp.decode()
+            inp: str = inp.decode()
 
-        payload = {
+        payload: dict[str, str | int] = {
             "uuid": connection.uuid,
             "addr": connection.addr,
             "port": connection.port,
             "msg": inp.strip(),
         }
-        msg = {
+        msg: dict[str, str] = {
             "event": "player/input",
             "secret": WS_SECRET,
             "payload": payload,
@@ -221,7 +221,7 @@ async def client_stp_read(reader, writer, connection):
                         message=json.dumps(msg, sort_keys=True, indent=4))))
 
 
-async def client_write(writer, connection):
+async def client_write(writer, connection) -> None:
     """
         Utilized by the Telnet and SSH client_handlers.
 
@@ -229,7 +229,7 @@ async def client_write(writer, connection):
         We await for any messages from the game to this client, then write and drain it.
     """
     while connection.state["connected"]:
-        msg_obj = await messages_to_clients[connection.uuid].get()
+        msg_obj: Message = await messages_to_clients[connection.uuid].get()
         if msg_obj.is_io:
             writer.write(msg_obj.msg)
             if msg_obj.is_prompt:
@@ -240,7 +240,7 @@ async def client_write(writer, connection):
         asyncio.create_task(writer.drain())
 
 
-async def client_stp_write(writer, connection):
+async def client_stp_write(writer, connection) -> None:
     """
         Utilized by the Secure Telnet client_stp_handler.  We have some bytes/str work to deal with
         so it's probably easier to have this as a separate coroutine from the other. We want this
@@ -248,7 +248,7 @@ async def client_stp_write(writer, connection):
         for any messages from the game to this client, then write and drain it.
     """
     while connection.state["connected"]:
-        msg_obj = await messages_to_clients[connection.uuid].get()
+        msg_obj: Message = await messages_to_clients[connection.uuid].get()
         if msg_obj.is_io:
             writer.write(msg_obj.msg.encode())
             if msg_obj.is_prompt:
@@ -257,7 +257,7 @@ async def client_stp_write(writer, connection):
         asyncio.create_task(writer.drain())
 
 
-async def client_ssh_handler(process):
+async def client_ssh_handler(process) -> None:
     """
     This handler is for SSH client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
@@ -266,16 +266,16 @@ async def client_ssh_handler(process):
               dir(process))
     reader = process.stdin
     writer = process.stdout
-    client_details = process.get_extra_info("peername")
+    client_details: str = process.get_extra_info("peername")
 
     addr, port, *rest = client_details
     log.info("Connection established with %s : %s: %s", addr, port, rest)
 
-    connection = PlayerConnection(addr, port, "ssh")
+    connection: PlayerConnection = PlayerConnection(addr, port, "ssh")
 
     await register_client(connection)
 
-    tasks = [
+    tasks: list[asyncio.tasks] = [
         asyncio.create_task(client_read(reader, connection),
                             name=f"{connection.uuid} ssh read"),
         asyncio.create_task(client_write(writer, connection),
@@ -300,14 +300,14 @@ async def client_ssh_handler(process):
         task.cancel()
 
 
-async def client_telnet_handler(reader, writer):
+async def client_telnet_handler(reader, writer) -> None:
     """
     This handler is for telnet client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
     log.debug("clients.py:client_telnet_handler - telnet details are: %s",
               dir(reader))
-    client_details = writer.get_extra_info("peername")
+    client_details: str = writer.get_extra_info("peername")
 
     addr, port, *rest = client_details
     log.info("Connection established with %s : %s : %s", addr, port, rest)
@@ -315,11 +315,11 @@ async def client_telnet_handler(reader, writer):
     # Need to work on better telnet support for regular old telnet clients.
     # Everything so far works great in Mudlet.  Just saying....
 
-    connection = PlayerConnection(addr, port, "telnet")
+    connection: PlayerConnection = PlayerConnection(addr, port, "telnet")
 
     await register_client(connection)
 
-    tasks = [
+    tasks: list[asyncio.tasks] = [
         asyncio.create_task(client_read(reader, connection),
                             name=f"{connection.uuid} telnet read"),
         asyncio.create_task(client_write(writer, connection),
@@ -353,23 +353,23 @@ async def client_telnet_handler(reader, writer):
         task.cancel()
 
 
-async def client_stp_handler(reader, writer):
+async def client_stp_handler(reader, writer) -> None:
     """
     This handler is for secure telnet client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
     log.debug("clients.py:client_stp_handler - secure telnet details are: %s",
               dir(reader))
-    client_details = writer.get_extra_info("peername")
+    client_details: str = writer.get_extra_info("peername")
 
     addr, port, *rest = client_details
     log.info("Connection established with %s : %s : %s", addr, port, rest)
 
-    connection = PlayerConnection(addr, port, "secure telnet")
+    connection: PlayerConnection = PlayerConnection(addr, port, "secure telnet")
 
     await register_client(connection)
 
-    tasks = [
+    tasks: list[asyncio.tasks] = [
         asyncio.create_task(client_stp_read(reader, writer, connection),
                             name=f"{connection.uuid} stp read"),
         asyncio.create_task(client_stp_write(writer, connection),
