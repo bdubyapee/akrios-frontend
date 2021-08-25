@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Project: akrios-frontend
+# Project: akrios_frontend
 # Filename: protocols\mssp.py
 #
 # File Description: MSSP Support
@@ -12,9 +12,10 @@
 
 # Standard Library
 import logging
-# Project
-import statistics
+from time import time
 from typing import List
+
+# Project
 
 log: logging.Logger = logging.getLogger(__name__)
 
@@ -27,10 +28,16 @@ MSSP: bytes = bytes([70])  # MSSP Mud Protocol
 
 
 def mssp_response() -> List:
+    """
+    The MSSP protocol contains the below possible values that are available to a player
+    or "mud crawler".  Currently we just have dummy values for testing.  Once we have
+    the game engine stable we will create status queries for some items and bring those in her
+    as well.
+    """
     mssp_values = {
-        "NAME": statistics.MUD_NAME,
-        "PLAYERS": statistics.PLAYER_COUNT,
-        "UPTIME": statistics.STARTUP_TIME,
+        "NAME": "AkriosMUD",
+        "PLAYERS": 3,
+        "UPTIME": int(time()),
         "CODEBASE": "AkriosMUD",
         "CONTACT": "phippsb@gmail.com",
         "CRAWL DELAY": -1,
@@ -75,11 +82,11 @@ def mssp_response() -> List:
 
     codes: List = [MSSP]
 
-    for k, v in mssp_values.items():
-        if type(v) == list:
-            for each_val in v:
+    for k, val in mssp_values.items():
+        if isinstance(val, list):
+            for each_val in val:
                 codes.extend([MSSP_VAR, k.encode(), MSSP_VAL, each_val])
         else:
-            codes.extend([MSSP_VAR, k.encode(), MSSP_VAL, v])
+            codes.extend([MSSP_VAR, k.encode(), MSSP_VAL, val])
 
     return codes

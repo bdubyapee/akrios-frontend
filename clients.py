@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*-
-# Project: akrios-frontend
+# Project: akrios_frontend
 # Filename: clients.py
 #
 # File Description: Client connections via Telnet, Secure Telnet and SSH.
 #
 # By: Jubelo
 """
-    Housing the Class(es) and coroutines for accepting and maintaining connections from clients via Telnet,
-    Secure Telnet and SSH.
+    Housing the Class(es) and coroutines for accepting and maintaining connections from clients
+    via Telnet, Secure Telnet and SSH.
 """
 
 # Standard Library
 import asyncio
 import json
 import logging
-import statistics
 from uuid import uuid4
 
 # Third Party
@@ -30,7 +29,7 @@ log = logging.getLogger(__name__)
 connections = {}
 
 
-class PlayerConnection(object):
+class PlayerConnection:
     """
         Each connection when created in async handle_client will instantiate this class.
 
@@ -98,21 +97,19 @@ class PlayerConnection(object):
 
 class MySSHServer(asyncssh.SSHServer):
     """
-    This class facilitates allowing SSH access in without requiring "ssh" credentials.  The various methods
-    are configured to allow the "unauthenticated" access as well as some logging.
+    This class facilitates allowing SSH access in without requiring "ssh" credentials.  The
+    various methods are configured to allow the "unauthenticated" access as well as some logging.
 
     XXX Clean this up and document it.  Came from the asyncssh docs somewhere.
     """
     def connection_made(self, conn):
-        log.info(
-            f'clients.py:MySShServer - SSH connection received from {conn.get_extra_info("peername")[0]}'
-        )
+        log.info("clients.py:MySShServer - SSH connection received from %s",
+                 conn.get_extra_info("peername")[0])
 
-    def connection_lost(self, exception):
-        if exception:
-            log.warning(
-                f"clients.py:MySShServer - SSH connection error: {str(exception)}"
-            )
+    def connection_lost(self, exc):
+        if exc:
+            log.warning("clients.py:MySShServer - SSH connection error: %s",
+                        str(exc))
         else:
             log.info("clients.py:MySShServer - SSH connection closed.")
 
@@ -132,7 +129,6 @@ async def register_client(connection):
     """
     connections[connection.uuid] = connection
     messages_to_clients[connection.uuid] = asyncio.Queue()
-    statistics.PLAYER_COUNT += 1
 
     await connection.notify_connected()
 
@@ -145,12 +141,10 @@ async def unregister_client(connection):
         connections.pop(connection.uuid)
         messages_to_clients.pop(connection.uuid)
 
-        statistics.PLAYER_COUNT -= 1
-
         await connection.notify_disconnected()
 
 
-async def client_read(reader, writer, connection):
+async def client_read(reader, connection):
     """
         Utilized by the Telnet and SSH client_handlers.
 
@@ -162,7 +156,7 @@ async def client_read(reader, writer, connection):
     """
     while connection.state["connected"]:
         inp = await reader.readline()
-        log.info(f"Raw received data in client_read : {inp}")
+        log.info("Raw received data in client_read : %s", inp)
 
         if not inp:  # This is an EOF.  Hard disconnect.
             connection.state["connected"] = False
@@ -200,7 +194,7 @@ async def client_stp_read(reader, writer, connection):
         inp = await reader.readline()
 
         if not inp:
-            log.info(f'Connection terminated with {connection.addr}')
+            log.info('Connection terminated with %s', connection.addr)
             connection.state["connected"] = False
 
         if inp.startswith(telnet.IAC):
@@ -239,7 +233,7 @@ async def client_write(writer, connection):
         if msg_obj.is_io:
             writer.write(msg_obj.msg)
             if msg_obj.is_prompt:
-                writer.write(telnet.ga())
+                writer.write(telnet.go_ahead())
         elif msg_obj.is_command_telnet:
             writer.write(telnet.iac([msg_obj.command]))
 
@@ -248,17 +242,17 @@ async def client_write(writer, connection):
 
 async def client_stp_write(writer, connection):
     """
-        Utilized by the Secure Telnet client_stp_handler.  We have some bytes/str work to deal with so it's
-        probably easier to have this as a separate coroutine from the other. We want this coroutine to run while
-        the client is connected, so we begin with a while loop.  We await for any messages from the game to this
-        client, then write and drain it.
+        Utilized by the Secure Telnet client_stp_handler.  We have some bytes/str work to deal with
+        so it's probably easier to have this as a separate coroutine from the other. We want this
+        coroutine to run while the client is connected, so we begin with a while loop.  We await
+        for any messages from the game to this client, then write and drain it.
     """
     while connection.state["connected"]:
         msg_obj = await messages_to_clients[connection.uuid].get()
         if msg_obj.is_io:
             writer.write(msg_obj.msg.encode())
             if msg_obj.is_prompt:
-                writer.write(telnet.ga())
+                writer.write(telnet.go_ahead())
 
         asyncio.create_task(writer.drain())
 
@@ -268,21 +262,21 @@ async def client_ssh_handler(process):
     This handler is for SSH client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
-    log.debug(
-        f"clients.py:client_ssh_handler - SSH details are: {dir(process)}")
+    log.debug("clients.py:client_ssh_handler - SSH details are: %s",
+              dir(process))
     reader = process.stdin
     writer = process.stdout
     client_details = process.get_extra_info("peername")
 
     addr, port, *rest = client_details
-    log.info(f"Connection established with {addr} : {port} : {rest}")
+    log.info("Connection established with %s : %s: %s", addr, port, rest)
 
     connection = PlayerConnection(addr, port, "ssh")
 
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_read(reader, writer, connection),
+        asyncio.create_task(client_read(reader, connection),
                             name=f"{connection.uuid} ssh read"),
         asyncio.create_task(client_write(writer, connection),
                             name=f"{connection.uuid} ssh write"),
@@ -295,8 +289,8 @@ async def client_ssh_handler(process):
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
-    # Once we reach this point one of our tasks (reader/writer) have completed or failed.  Remove client
-    # from the registration list and perform connection specific cleanup.
+    # Once we reach this point one of our tasks (reader/writer) have completed or failed.  Remove
+    # client from the registration list and perform connection specific cleanup.
     await unregister_client(connection)
 
     process.close()
@@ -311,13 +305,12 @@ async def client_telnet_handler(reader, writer):
     This handler is for telnet client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
-    log.debug(
-        f"clients.py:client_telnet_handler - telnet details are: {dir(reader)}"
-    )
+    log.debug("clients.py:client_telnet_handler - telnet details are: %s",
+              dir(reader))
     client_details = writer.get_extra_info("peername")
 
     addr, port, *rest = client_details
-    log.info(f"Connection established with {addr} : {port} : {rest}")
+    log.info("Connection established with %s : %s : %s", addr, port, rest)
 
     # Need to work on better telnet support for regular old telnet clients.
     # Everything so far works great in Mudlet.  Just saying....
@@ -327,7 +320,7 @@ async def client_telnet_handler(reader, writer):
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_read(reader, writer, connection),
+        asyncio.create_task(client_read(reader, connection),
                             name=f"{connection.uuid} telnet read"),
         asyncio.create_task(client_write(writer, connection),
                             name=f"{connection.uuid} telnet write"),
@@ -348,8 +341,8 @@ async def client_telnet_handler(reader, writer):
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
-    # Once we reach this point one of our tasks (reader/writer) have completed or failed.  Remove client
-    # from the registration list and perform connection specific cleanup.
+    # Once we reach this point one of our tasks (reader/writer) have completed or failed.
+    # Remove client from the registration list and perform connection specific cleanup.
     await unregister_client(connection)
 
     writer.write_eof()
@@ -365,13 +358,12 @@ async def client_stp_handler(reader, writer):
     This handler is for secure telnet client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
-    log.debug(
-        f"clients.py:client_stp_handler - secure telnet details are: {dir(reader)}"
-    )
+    log.debug("clients.py:client_stp_handler - secure telnet details are: %s",
+              dir(reader))
     client_details = writer.get_extra_info("peername")
 
     addr, port, *rest = client_details
-    log.info(f"Connection established with {addr} : {port} : {rest}")
+    log.info("Connection established with %s : %s : %s", addr, port, rest)
 
     connection = PlayerConnection(addr, port, "secure telnet")
 
@@ -399,8 +391,8 @@ async def client_stp_handler(reader, writer):
     # we move beyond this point and cleanup the tasks associated with this client.
     _, rest = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
-    # Once we reach this point one of our tasks (reader/writer) have completed or failed.  Remove client
-    # from the registration list and perform connection specific cleanup.
+    # Once we reach this point one of our tasks (reader/writer) have completed or failed.
+    # Remove client from the registration list and perform connection specific cleanup.
     await unregister_client(connection)
 
     await writer.drain()

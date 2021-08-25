@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Project: akrios-frontend
+# Project: akrios_frontend
 # Filename: parse.py
 #
 # File Description: Parse messages we receive from the game engine.
@@ -16,10 +16,10 @@ import logging
 import subprocess
 import time
 
+# Project
 import clients
 from keys import WS_SECRET
 from messages import Message, messages_to_clients
-# Project
 from protocols.telnet import ECHO, WILL, WONT
 
 # Third Party
@@ -29,8 +29,8 @@ log: logging.Logger = logging.getLogger(__name__)
 
 async def softboot_game(wait_time):
     """
-        The game has notified that it will shutdown.  We take the wait_time, sleep that time and then
-        launch the game.
+        The game has notified that it will shutdown.  We take the wait_time, sleep that amount of
+        time and then launch the game.
     """
     await asyncio.sleep(wait_time)
     subprocess.Popen(
@@ -41,15 +41,14 @@ async def msg_heartbeat():
     """
         We have received a heartbeat from the game engine.  Right now we just log the receipt.
     """
-    log.debug(
-        f"parse.py:msg_heartbeat - Heartbeat received from game at: {time.time()}"
-    )
+    log.debug("parse.py:msg_heartbeat - Heartbeat received from game at: %s",
+              time.time())
 
 
 async def msg_players_output(payload):
     """
-        The msg is output for a player.  We .put that message into the asyncio.queue for that specific
-        player.
+        The msg is output for a player.  We .put that message into the asyncio.queue for that
+        specific player.
     """
     session = payload["uuid"]
     message = payload["message"]
@@ -62,30 +61,30 @@ async def msg_players_output(payload):
 
 async def msg_players_sign_in(payload):
     """
-        We have received a successful player sign-in from the game engine.  We assign that authenticated name
-        to the session.  Use for tracking during softboots.
+        We have received a successful player sign-in from the game engine.  We assign that
+        authenticated name to the session.  Use for tracking during softboots.
     """
     player = payload["name"]
     session = payload["uuid"]
     if session in clients.connections:
         log.debug(
-            f"parse.py:msg_players_sign_in - players/sign-in received for {player}@{session}"
-        )
+            "parse.py:msg_players_sign_in - players/sign-in received for %s@%s",
+            player, session)
         clients.connections[session].name = player
 
 
 async def msg_players_sign_out(payload):
     """
-        We have received a player sign-out message from the engine.  This indicates a player has quit
-        the game.  We change player session state to disconnected to end their session.
+        We have received a player sign-out message from the engine.  This indicates a player has
+        quit the game.  We change player session state to disconnected to end their session.
     """
     player = payload["name"]
     message = payload["message"]
     session = payload["uuid"]
     if session in clients.connections:
         log.debug(
-            f"parse.py:msg_players_sign_out - players/sign-out received for {player}@{session}"
-        )
+            "parse.py:msg_players_sign_out - players/sign-out received for %s@%s",
+            player, session)
         clients.connections[session].state["connected"] = False
         asyncio.create_task(messages_to_clients[session].put(
             Message("IO", message=message)))
@@ -116,8 +115,8 @@ async def msg_player_session_command(payload):
 async def msg_game_softboot(payload):
     """
         We have received a softboot message from the engine.  This indicates an administrator
-        has issued the softboot command.  The game engine will handle saving and closing out players,
-        we are now responsible for launching the game engine again.
+        has issued the softboot command.  The game engine will handle saving and closing out
+        players, we are now responsible for launching the game engine again.
     """
     await softboot_game(int(payload["wait_time"]))
 

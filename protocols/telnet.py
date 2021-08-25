@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Project: akrios-frontend
+# Project: akrios_frontend
 # Filename: telnet.py
 #
 # File Description: Consolidate various protocols.
@@ -17,10 +17,9 @@ import logging
 from string import printable
 
 # Project
-import protocols.mssp as mssp
+from protocols import mssp
 
 # Third Party
-
 
 log: logging.Logger = logging.getLogger(__name__)
 
@@ -74,9 +73,9 @@ def iac(codes):
     command = []
 
     for each_code in codes:
-        if type(each_code) == str:
+        if isinstance(each_code, str):
             command.append(each_code.encode())
-        elif type(each_code) == int:
+        elif isinstance(each_code, int):
             command.append(str(each_code).encode())
         else:
             command.append(each_code)
@@ -93,9 +92,9 @@ def iac_sb(codes):
     command = []
 
     for each_code in codes:
-        if type(each_code) == str:
+        if isinstance(each_code, str):
             command.append(each_code.encode())
-        elif type(each_code) == int:
+        elif isinstance(each_code, int):
             command.append(str(each_code).encode())
         else:
             command.append(each_code)
@@ -107,19 +106,19 @@ def iac_sb(codes):
 
 def split_opcode_from_input(data):
     """
-    This one will need some love once we get into sub negotiation, ie NAWS.
+    This one will need some love once we get into sub negotiation, ie NAWS.  Review
+    iterating over the data and clean up the hot mess below.
     """
-    log.info(f"Received raw data (len={len(data)}) of: {data}")
+    log.info("Received raw data (len=%s of: %s", len(data), data)
     opcodes = b''
     inp = ''
-    for each_code in range(len(data)):
-        if data[each_code] in code_by_byte:
-            opcodes += bytes([data[each_code]])
-        elif chr(data[each_code]) in printable:
-            inp += chr(data[each_code])
-    log.info(
-        f"Bytecodes found in input.\n\ropcodes: {opcodes}\n\rinput returned: {inp}"
-    )
+    for position, _ in enumerate(data):
+        if data[position] in code_by_byte:
+            opcodes += bytes([data[position]])
+        elif chr(data[position]) in printable:
+            inp += chr(data[position])
+    log.info("Bytecodes found in input.\n\ropcodes: %s\n\rinput returned: %s",
+             opcodes, inp)
     return opcodes, inp
 
 
@@ -131,7 +130,7 @@ def advertise_features():
     features = b""
     for each_feature in GAME_CAPABILITIES:
         features += features + IAC + WILL + code[each_feature]
-    log.info(f"Advertising features: {features}")
+    log.info("Advertising features: %s", features)
     return features
 
 
@@ -149,7 +148,7 @@ def echo_on():
     return IAC + WONT + ECHO
 
 
-def ga():
+def go_ahead():
     """
     Return the Telnet opcode for IAC GA (Go Ahead) which some clients want to
     see after each prompt so that they know we are done sending this particular block
@@ -173,6 +172,6 @@ async def handle(opcodes, writer):
     for each_code in opcodes.split(IAC):
         if each_code and each_code in opcode_match:
             result = iac_sb(opcode_match[each_code]())
-            log.info(f"Responding to previous opcode with: {result}")
+            log.info("Responding to previous opcode with: %s", result)
             writer.write(result)
             await writer.drain()

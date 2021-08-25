@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Project: akrios-frontend
+# Project: akrios_frontend
 # Filename: messages.py
 #
 # File Description: Message queues for passing input and output between the game and clients.
@@ -17,14 +17,19 @@ import asyncio
 
 # Project
 
-# There is only one game connection, create a asyncio.Queue to hold messages to the game from clients.
+# There is only one game connection, create a asyncio.Queue to hold messages to the game from
+# clients.
 messages_to_game = asyncio.Queue()
 
-# There will be multiple clients connected.  uuid of client will be key, values will be an asyncio.Queue.
+# There will be multiple clients connected.  uuid of client will be key, values will be an
+# asyncio.Queue.
 messages_to_clients = {}
 
 
-class Message(object):
+class Message:
+    """
+    A Message is specifically a message meant for a connected client.
+    """
     def __init__(self, msg_type, **kwargs):
         self.msg = kwargs['message']
         self.command = kwargs.get('command', None)
@@ -34,16 +39,28 @@ class Message(object):
 
     @property
     def is_command_telnet(self):
-        return True if self.msg_type == "COMMAND-TELNET" else False
+        """
+        A shortcut property to determine if this message is a Telnet Opcode.
+        """
+        return self.msg_type == "COMMAND-TELNET"
 
     @property
     def is_command_ssh(self):
-        return True if self.msg_type == "COMMAND-SSH" else False
+        """
+        A shortcut property to determine if this message is a special SSH command.
+        """
+        return self.msg_type == "COMMAND-SSH"
 
     @property
     def is_io(self):
-        return True if self.msg_type == "IO" else False
+        """
+        A shortcut property to determine if this message is normal I/O.
+        """
+        return self.msg_type == "IO"
 
     @property
     def is_prompt(self):
-        return True if self.prompt == "true" else False
+        """
+        A shortcut property to determine if this message is a prompt (versus normal I/O).
+        """
+        return self.prompt == "true"

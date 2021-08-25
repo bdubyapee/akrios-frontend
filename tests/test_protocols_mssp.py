@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Project: akrios-frontend
+# Project: akrios_frontend
 # Filename: tests\test_protocol_mssp.py
 #
 # File Description: Test suite for the mssp protocol module.
@@ -11,11 +11,14 @@
 """
 
 # Standard Library
+import os
+import sys
 
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Third Party
 
 # Project
-from protocols.mssp import mssp_response
+from protocols.mssp import mssp_response  # noqa
 
 
 def test_mssp_response_length():
