@@ -11,18 +11,18 @@
 
 # Standard Library
 import asyncio
-import logging
 import json
+import logging
 import subprocess
 import time
 
-# Third Party
-
-# Project
-from protocols.telnet import WILL, WONT, ECHO
-from messages import Message, messages_to_clients
 import clients
 from keys import WS_SECRET
+from messages import Message, messages_to_clients
+# Project
+from protocols.telnet import ECHO, WILL, WONT
+
+# Third Party
 
 log: logging.Logger = logging.getLogger(__name__)
 
@@ -33,14 +33,17 @@ async def softboot_game(wait_time):
         launch the game.
     """
     await asyncio.sleep(wait_time)
-    subprocess.Popen(["python", "/home/bwp/PycharmProjects/akrios-ii/src/server.py"])
+    subprocess.Popen(
+        ["python", "/home/bwp/PycharmProjects/akrios-ii/src/server.py"])
 
 
 async def msg_heartbeat():
     """
         We have received a heartbeat from the game engine.  Right now we just log the receipt.
     """
-    log.debug(f"parse.py:msg_heartbeat - Heartbeat received from game at: {time.time()}")
+    log.debug(
+        f"parse.py:msg_heartbeat - Heartbeat received from game at: {time.time()}"
+    )
 
 
 async def msg_players_output(payload):
@@ -53,7 +56,8 @@ async def msg_players_output(payload):
     is_prompt = payload["is prompt"]
 
     if session in clients.connections:
-        asyncio.create_task(messages_to_clients[session].put(Message("IO", message=message, is_prompt=is_prompt)))
+        asyncio.create_task(messages_to_clients[session].put(
+            Message("IO", message=message, is_prompt=is_prompt)))
 
 
 async def msg_players_sign_in(payload):
@@ -64,7 +68,9 @@ async def msg_players_sign_in(payload):
     player = payload["name"]
     session = payload["uuid"]
     if session in clients.connections:
-        log.debug(f"parse.py:msg_players_sign_in - players/sign-in received for {player}@{session}")
+        log.debug(
+            f"parse.py:msg_players_sign_in - players/sign-in received for {player}@{session}"
+        )
         clients.connections[session].name = player
 
 
@@ -77,9 +83,12 @@ async def msg_players_sign_out(payload):
     message = payload["message"]
     session = payload["uuid"]
     if session in clients.connections:
-        log.debug(f"parse.py:msg_players_sign_out - players/sign-out received for {player}@{session}")
+        log.debug(
+            f"parse.py:msg_players_sign_out - players/sign-out received for {player}@{session}"
+        )
         clients.connections[session].state["connected"] = False
-        asyncio.create_task(messages_to_clients[session].put(Message("IO", message=message)))
+        asyncio.create_task(messages_to_clients[session].put(
+            Message("IO", message=message)))
 
 
 async def msg_player_session_command(payload):
@@ -92,14 +101,16 @@ async def msg_player_session_command(payload):
     """
     session = payload["uuid"]
     command = payload["command"]
-    if session in clients.connections and clients.connections[session].conn_type == "telnet":
+    if session in clients.connections and clients.connections[
+            session].conn_type == "telnet":
         iac_cmd = (WONT, ECHO)
         if command == "dont echo":
             iac_cmd = (WILL, ECHO)
         elif command == "do echo":
             iac_cmd = (WONT, ECHO)
 
-        asyncio.create_task(messages_to_clients[session].put(Message("COMMAND-TELNET", command=iac_cmd)))
+        asyncio.create_task(messages_to_clients[session].put(
+            Message("COMMAND-TELNET", command=iac_cmd)))
 
 
 async def msg_game_softboot(payload):

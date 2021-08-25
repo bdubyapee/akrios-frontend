@@ -10,6 +10,6 @@
     this location.
 """
 
-startup_time = 0
-player_count = 0
-mud_name = 'Akrios'
+STARTUP_TIME = 0
+PLAYER_COUNT = 0
+MUD_NAME = 'Akrios'

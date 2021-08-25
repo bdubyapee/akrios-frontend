@@ -14,6 +14,7 @@
 import asyncio
 import json
 import logging
+import statistics
 from uuid import uuid4
 
 # Third Party
@@ -23,7 +24,6 @@ import asyncssh
 from keys import WS_SECRET
 from messages import Message, messages_to_clients, messages_to_game
 from protocols import telnet
-import statistics
 
 log = logging.getLogger(__name__)
 
@@ -43,7 +43,6 @@ class PlayerConnection(object):
                 Currently used for "softboot" capability
             self.uuid is a str(uuid.uuid4()) for unique session tracking
     """
-
     def __init__(self, addr, port, conn_type, rows=24):
         self.addr = addr
         self.port = port
@@ -70,7 +69,10 @@ class PlayerConnection(object):
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message("IO", message=json.dumps(msg, sort_keys=True, indent=4))))
+        asyncio.create_task(
+            messages_to_game.put(
+                Message("IO",
+                        message=json.dumps(msg, sort_keys=True, indent=4))))
 
     async def notify_disconnected(self):
         """
@@ -88,7 +90,10 @@ class PlayerConnection(object):
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message("IO", message=json.dumps(msg, sort_keys=True, indent=4))))
+        asyncio.create_task(
+            messages_to_game.put(
+                Message("IO",
+                        message=json.dumps(msg, sort_keys=True, indent=4))))
 
 
 class MySSHServer(asyncssh.SSHServer):
@@ -98,13 +103,16 @@ class MySSHServer(asyncssh.SSHServer):
 
     XXX Clean this up and document it.  Came from the asyncssh docs somewhere.
     """
-
     def connection_made(self, conn):
-        log.info(f'clients.py:MySShServer - SSH connection received from {conn.get_extra_info("peername")[0]}')
+        log.info(
+            f'clients.py:MySShServer - SSH connection received from {conn.get_extra_info("peername")[0]}'
+        )
 
     def connection_lost(self, exception):
         if exception:
-            log.warning(f"clients.py:MySShServer - SSH connection error: {str(exception)}")
+            log.warning(
+                f"clients.py:MySShServer - SSH connection error: {str(exception)}"
+            )
         else:
             log.info("clients.py:MySShServer - SSH connection closed.")
 
@@ -124,7 +132,7 @@ async def register_client(connection):
     """
     connections[connection.uuid] = connection
     messages_to_clients[connection.uuid] = asyncio.Queue()
-    statistics.player_count += 1
+    statistics.PLAYER_COUNT += 1
 
     await connection.notify_connected()
 
@@ -137,7 +145,7 @@ async def unregister_client(connection):
         connections.pop(connection.uuid)
         messages_to_clients.pop(connection.uuid)
 
-        statistics.player_count -= 1
+        statistics.PLAYER_COUNT -= 1
 
         await connection.notify_disconnected()
 
@@ -172,7 +180,10 @@ async def client_read(reader, writer, connection):
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message("IO", message=json.dumps(msg, sort_keys=True, indent=4))))
+        asyncio.create_task(
+            messages_to_game.put(
+                Message("IO",
+                        message=json.dumps(msg, sort_keys=True, indent=4))))
 
 
 async def client_stp_read(reader, writer, connection):
@@ -210,7 +221,10 @@ async def client_stp_read(reader, writer, connection):
             "payload": payload,
         }
 
-        asyncio.create_task(messages_to_game.put(Message("IO", message=json.dumps(msg, sort_keys=True, indent=4))))
+        asyncio.create_task(
+            messages_to_game.put(
+                Message("IO",
+                        message=json.dumps(msg, sort_keys=True, indent=4))))
 
 
 async def client_write(writer, connection):
@@ -254,7 +268,8 @@ async def client_ssh_handler(process):
     This handler is for SSH client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
-    log.debug(f"clients.py:client_ssh_handler - SSH details are: {dir(process)}")
+    log.debug(
+        f"clients.py:client_ssh_handler - SSH details are: {dir(process)}")
     reader = process.stdin
     writer = process.stdout
     client_details = process.get_extra_info("peername")
@@ -267,8 +282,10 @@ async def client_ssh_handler(process):
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_read(reader, writer, connection), name=f"{connection.uuid} ssh read"),
-        asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} ssh write"),
+        asyncio.create_task(client_read(reader, writer, connection),
+                            name=f"{connection.uuid} ssh read"),
+        asyncio.create_task(client_write(writer, connection),
+                            name=f"{connection.uuid} ssh write"),
     ]
 
     asyncio.current_task().set_name(f"{connection.uuid} ssh handler")
@@ -294,7 +311,9 @@ async def client_telnet_handler(reader, writer):
     This handler is for telnet client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
-    log.debug(f"clients.py:client_telnet_handler - telnet details are: {dir(reader)}")
+    log.debug(
+        f"clients.py:client_telnet_handler - telnet details are: {dir(reader)}"
+    )
     client_details = writer.get_extra_info("peername")
 
     addr, port, *rest = client_details
@@ -308,8 +327,10 @@ async def client_telnet_handler(reader, writer):
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_read(reader, writer, connection), name=f"{connection.uuid} telnet read"),
-        asyncio.create_task(client_write(writer, connection), name=f"{connection.uuid} telnet write"),
+        asyncio.create_task(client_read(reader, writer, connection),
+                            name=f"{connection.uuid} telnet read"),
+        asyncio.create_task(client_write(writer, connection),
+                            name=f"{connection.uuid} telnet write"),
     ]
 
     asyncio.current_task().set_name(f"{connection.uuid} ssh handler")
@@ -344,7 +365,9 @@ async def client_stp_handler(reader, writer):
     This handler is for secure telnet client connections. Upon a client connection this handler is
     the starting point for creating the tasks necessary to handle the client.
     """
-    log.debug(f"clients.py:client_stp_handler - secure telnet details are: {dir(reader)}")
+    log.debug(
+        f"clients.py:client_stp_handler - secure telnet details are: {dir(reader)}"
+    )
     client_details = writer.get_extra_info("peername")
 
     addr, port, *rest = client_details
@@ -355,8 +378,10 @@ async def client_stp_handler(reader, writer):
     await register_client(connection)
 
     tasks = [
-        asyncio.create_task(client_stp_read(reader, writer, connection), name=f"{connection.uuid} stp read"),
-        asyncio.create_task(client_stp_write(writer, connection), name=f"{connection.uuid} stp write"),
+        asyncio.create_task(client_stp_read(reader, writer, connection),
+                            name=f"{connection.uuid} stp read"),
+        asyncio.create_task(client_stp_write(writer, connection),
+                            name=f"{connection.uuid} stp write"),
     ]
 
     asyncio.current_task().set_name(f"{connection.uuid} stp handler")

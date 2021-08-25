@@ -15,13 +15,14 @@
 # Standard Library
 import logging
 from string import printable
-# Third Party
 
 # Project
 import protocols.mssp as mssp
 
-log: logging.Logger = logging.getLogger(__name__)
+# Third Party
 
+
+log: logging.Logger = logging.getLogger(__name__)
 
 # Basic Telnet protocol opcodes. The MSSP character will be imported from it's module.
 IAC = bytes([255])  # "Interpret As Command"
@@ -39,23 +40,24 @@ TTYPE = bytes([24])  # terminal type
 ECHO = bytes([1])  # echo
 theNULL = bytes([0])
 
-
 # Telnet protocol by string designators
-code = {'IAC':     bytes([255]),
-        'DONT':    bytes([254]),
-        'DO':      bytes([253]),
-        'WONT':    bytes([252]),
-        'WILL':    bytes([251]),
-        'SB':      bytes([250]),
-        'GA':      bytes([249]),
-        'SE':      bytes([240]),
-        'MSSP':    bytes([70]),
-        'CHARSET': bytes([42]),
-        'NAWS':    bytes([31]),
-        'EOR':     bytes([25]),
-        'TTYPE':   bytes([24]),
-        'ECHO':    bytes([1]),
-        'theNull': bytes([0])}
+code = {
+    'IAC': bytes([255]),
+    'DONT': bytes([254]),
+    'DO': bytes([253]),
+    'WONT': bytes([252]),
+    'WILL': bytes([251]),
+    'SB': bytes([250]),
+    'GA': bytes([249]),
+    'SE': bytes([240]),
+    'MSSP': bytes([70]),
+    'CHARSET': bytes([42]),
+    'NAWS': bytes([31]),
+    'EOR': bytes([25]),
+    'TTYPE': bytes([24]),
+    'ECHO': bytes([1]),
+    'theNull': bytes([0])
+}
 
 # Telnet protocol, int representation as key, string designator value.
 code_by_byte = {ord(v): k for k, v in code.items()}
@@ -81,7 +83,7 @@ def iac(codes):
 
     command = b''.join(command)
 
-    return IAC+command
+    return IAC + command
 
 
 def iac_sb(codes):
@@ -115,7 +117,9 @@ def split_opcode_from_input(data):
             opcodes += bytes([data[each_code]])
         elif chr(data[each_code]) in printable:
             inp += chr(data[each_code])
-    log.info(f"Bytecodes found in input.\n\ropcodes: {opcodes}\n\rinput returned: {inp}")
+    log.info(
+        f"Bytecodes found in input.\n\ropcodes: {opcodes}\n\rinput returned: {inp}"
+    )
     return opcodes, inp
 
 
@@ -126,7 +130,7 @@ def advertise_features():
     """
     features = b""
     for each_feature in GAME_CAPABILITIES:
-        features += features+IAC+WILL+code[each_feature]
+        features += features + IAC + WILL + code[each_feature]
     log.info(f"Advertising features: {features}")
     return features
 
@@ -135,14 +139,14 @@ def echo_off():
     """
     Return the Telnet opcode for IAC WILL ECHO.
     """
-    return IAC+WILL+ECHO
+    return IAC + WILL + ECHO
 
 
 def echo_on():
     """
     Return the Telnet opcode for IAC WONT ECHO.
     """
-    return IAC+WONT+ECHO
+    return IAC + WONT + ECHO
 
 
 def ga():
@@ -151,7 +155,7 @@ def ga():
     see after each prompt so that they know we are done sending this particular block
     of text o them.
     """
-    return IAC+GA
+    return IAC + GA
 
 
 # Define a dictionary of responses to various received opcodes.

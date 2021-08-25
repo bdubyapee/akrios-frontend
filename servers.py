@@ -12,33 +12,32 @@
 
 # Standard Library
 import asyncio
-import logging
 import json
+import logging
 from uuid import uuid4
 
-# Third Party
-
+import clients
+import parse
+from keys import WS_SECRET
 # Project
 from messages import messages_to_game
-import clients
-from keys import WS_SECRET
-import parse
+
+# Third Party
 
 log = logging.getLogger(__name__)
 
 connections = {}
 
 
-class GameConnection(object):
+class GameConnection:
     """
-        Each connection when created in async ws_handler will instance this class.  This needs flushed out
-        more for smoother soft boot operation. **
+        Each connection when created in async ws_handler will instance this class.  This needs
+        fleshed out more for smoother soft boot operation. **
 
         Instance variables:
             self.state is the current state of the game connection
             self.uuid is a str(uuid.uuid4()) used for unique game connection session tracking
     """
-
     def __init__(self):
         self.state = {"connected": True}
         self.uuid = str(uuid4())
@@ -48,7 +47,8 @@ def register_client(game_connection):
     """
         Upon a new game connection, we register it to the GameConnection Class.
     """
-    log.debug(f"servers.py:register_client - Adding game {game_connection.uuid} to connections")
+    log.debug("servers.py:register_client - Adding game %s to connections",
+              game_connection.uuid)
     connections[game_connection.uuid] = game_connection
 
 
@@ -57,7 +57,9 @@ def unregister_client(game_connection):
         Upon an existing game disconnecting, we unregister it.
     """
     if game_connection.uuid in connections:
-        log.debug(f"servers.py:unregister_client - Deleting game {game_connection.uuid} from connections")
+        log.debug(
+            "servers.py:unregister_client - Deleting game %s from connections",
+            game_connection.uuid)
         connections.pop(game_connection.uuid)
 
 
@@ -75,7 +77,8 @@ async def ws_heartbeat(websocket_, game_connection):
 
         log.info(msg)
 
-        asyncio.create_task(websocket_.send(json.dumps(msg, sort_keys=True, indent=4)))
+        asyncio.create_task(
+            websocket_.send(json.dumps(msg, sort_keys=True, indent=4)))
         await asyncio.sleep(10)
 
 
@@ -83,7 +86,8 @@ async def softboot_connection_list(websocket_):
     """
         When a game connects to this front end, part of the handler's responsibility
         is to verify if there are current connections to this front end.  If so then we may
-        assume that the game/FE have performed a "soft boot", or the game was restarted after a crash.
+        assume that the game/FE have performed a "soft boot", or the game was restarted after a
+        crash.
 
         Create a JSON message to the game to indicate the session ID to player name mapping
         so that the player(s) may be logged back in automatically.
@@ -98,7 +102,9 @@ async def softboot_connection_list(websocket_):
         "secret": WS_SECRET,
         "payload": payload,
     }
-    log.debug(f"servers.py:softboot_connection_list - Notifying game engine of connections:\n\r{msg}")
+    log.debug(
+        "servers.py:softboot_connection_list - Notifying game engine of connections:\n\r%s",
+        msg)
     await websocket_.send(json.dumps(msg, sort_keys=True, indent=4))
 
 
@@ -110,7 +116,7 @@ async def ws_read(websocket_, game_connection):
     """
     while game_connection.state["connected"]:
         if data := await websocket_.recv():
-            log.debug(f"servers.py:ws_read - Received from game: {str(data)}")
+            log.debug("servers.py:ws_read - Received from game: %s", str(data))
             asyncio.create_task(parse.message_parse(data))
         else:
             game_connection.state["connected"] = False  # EOF Disconnect
@@ -124,7 +130,8 @@ async def ws_write(websocket_, game_connection):
     """
     while game_connection.state["connected"]:
         msg_obj = await messages_to_game.get()
-        log.debug(f"servers.py:ws_write - Message sent to game: {msg_obj.msg}")
+        log.debug("servers.py:ws_write - Message sent to game: %s",
+                  msg_obj.msg)
 
         asyncio.create_task(websocket_.send(msg_obj.msg))
 
@@ -143,25 +150,39 @@ async def ws_handler(websocket_, path):
     game_connection = GameConnection()
     register_client(game_connection)
 
-    log.debug(f"servers.py:ws_handler - Received websocket connection from game at : {websocket_} {path}")
+    log.debug(
+        "servers.py:ws_handler - Received websocket connection from game at : %s %s",
+        websocket_, path)
 
     tasks = [
-        asyncio.create_task(ws_heartbeat(websocket_, game_connection), name=f"WS: {game_connection.uuid} hb",),
-        asyncio.create_task(ws_read(websocket_, game_connection), name=f"WS: {game_connection.uuid} read",),
-        asyncio.create_task(ws_write(websocket_, game_connection), name=f"WS: {game_connection.uuid} write",),
+        asyncio.create_task(
+            ws_heartbeat(websocket_, game_connection),
+            name=f"WS: {game_connection.uuid} hb",
+        ),
+        asyncio.create_task(
+            ws_read(websocket_, game_connection),
+            name=f"WS: {game_connection.uuid} read",
+        ),
+        asyncio.create_task(
+            ws_write(websocket_, game_connection),
+            name=f"WS: {game_connection.uuid} write",
+        ),
     ]
 
-    asyncio.current_task().set_name(f"WS: {game_connection.uuid} handler")  # type: ignore
+    asyncio.current_task().set_name(
+        f"WS: {game_connection.uuid} handler")  # type: ignore
 
     # When a game connection to this front end happens, we make an assumption that if we have
     # clients in clients.PlayerConnection.connections that the game has "softboot"ed or has
     # crashed and restarted.  Await a coroutine which informs the game of those client
     # details so that they can be automatically logged back in within the engine.
     if clients.connections:
-        log.debug("servers.py:ws_handler - Game connected to Front End.  Clients exist, await softboot_connection_list")
+        log.debug(
+            "servers.py:ws_handler - Game connected to Front End.  Clients exist, await "
+            "softboot_connection_list")
         await softboot_connection_list(websocket_)
 
-    _, pending = await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
+    await asyncio.wait(tasks, return_when="FIRST_COMPLETED")
 
     # Cancel any tasks associated with the 'current' game connection based on task name
     # containing a uuid for that connection.  This prevents the softboot, client and any other
@@ -171,4 +192,4 @@ async def ws_handler(websocket_, path):
             task.cancel()
 
     unregister_client(game_connection)
-    log.info(f"servers.py:ws_handler - Closing websocket")
+    log.info("servers.py:ws_handler - Closing websocket")

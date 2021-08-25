@@ -36,3 +36,4 @@ keys.py
 server_cert.pem
 server_key.pem
 
+/tests/.pytest_cache/
