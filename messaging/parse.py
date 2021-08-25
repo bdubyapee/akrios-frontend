@@ -19,7 +19,7 @@ import time
 # Project
 import clients
 from keys import WS_SECRET
-from messages import Message, messages_to_clients
+from .messages import Message, messages_to_clients
 from protocols import telnet
 
 # Third Party
