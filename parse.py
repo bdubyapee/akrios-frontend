@@ -20,7 +20,7 @@ import time
 import clients
 from keys import WS_SECRET
 from messages import Message, messages_to_clients
-from protocols.telnet import ECHO, WILL, WONT
+from protocols import telnet
 
 # Third Party
 
@@ -102,11 +102,11 @@ async def msg_player_session_command(payload):
     command = payload["command"]
     if session in clients.connections and clients.connections[
             session].conn_type == "telnet":
-        iac_cmd = (WONT, ECHO)
+        iac_cmd = b''
         if command == "dont echo":
-            iac_cmd = (WILL, ECHO)
+            iac_cmd = telnet.echo_off()
         elif command == "do echo":
-            iac_cmd = (WONT, ECHO)
+            iac_cmd = telnet.echo_on()
 
         asyncio.create_task(messages_to_clients[session].put(
             Message("COMMAND-TELNET", command=iac_cmd)))
