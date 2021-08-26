@@ -7,29 +7,18 @@
 # By: Jubelo
 """
     Front End utilized for separating server(connectivity) and game logic for Akrios-II.
-    The end game of this front end is to have several client connection options available (Telnet,
-    Secure Telnet, SSH and Web Client)/
+    The purpose of this front end is to have several client connection options available (Telnet,
+    Secure Telnet, SSH and Web Client)
 
     Currently we handle Telnet, Secure Telnet and SSH clients.
 
-    Allows for game to initiate a "softboot", which shuts down the game engine itself and instructs
-    this front end to run a new instance.  We provide the client session -> player name details to
-    the new game engine instance which automatically logs in the players.
+    Allows for the game to initiate a "softboot", which shuts down the game engine itself and
+    instructs this front end to run a new instance.  We provide the client session -> player name
+    details to the new game engine instance which automatically logs in the players.
 
-    SSH Details
-    ! Create an akrios_ca to use for the SSH portion of the front end.  You can use the command
-    ! below to generate the file. Use a passphrase during ca generation, place it in keys.py.
-    !
-    ! ssh-keygen -t rsa -b 4096 -o -a 100
-
-    A portion of the Secure (SSL/TLS) Telnet code was lifted from https://github.com/zapstar
-    I do not see any licensing information on his project so placing credit here.
-
-    Secure Telnet Details
-    ! Create Certificate and key for SSL context (Secure Telnet)
-    !
-    ! openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout server_key.pem -out
-    ! server_cert.pem
+    There will need to be an SSH key created for SSH as well as a Certificate pair for the telnet
+    over TLS features.  Please reference the readme.md for details on creating those locally
+    for testing.
 """
 
 # Standard Library
