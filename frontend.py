@@ -39,7 +39,7 @@ from servers import servers
 from keys import PASSPHRASE
 
 
-async def shutdown(signal_, loop_):
+async def shutdown(signal_, loop_) -> None:
     """
         shutdown coroutine utilized for cleanup on receipt of certain signals.
         Created and added as a handler to the loop in main.
@@ -61,7 +61,7 @@ async def shutdown(signal_, loop_):
     loop_.stop()
 
 
-def handle_exceptions(loop_, context):
+def handle_exceptions(loop_, context) -> None:
     """
         We attach this as the exception handler to the event loop.  Currently we just
         log, as warnings, any exceptions caught.
@@ -137,12 +137,12 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(asctime)s: %(name)s - %(levelname)s - %(message)s",
         level=LOG_LEVEL)
-    log = logging.getLogger(__name__)
+    log: logging.Logger = logging.getLogger(__name__)
 
-    all_servers = []
+    all_servers: list[asyncio.tasks] = []
 
     if not args.t:
-        telnet_port = args.tp
+        telnet_port: int = args.tp
         log.info(
             "frontend.py:__main__ - Creating client Telnet listener on port %s",
             telnet_port)
@@ -157,7 +157,7 @@ if __name__ == "__main__":
             ))
 
     if not args.s:
-        ssh_port = args.sp
+        ssh_port: int = args.sp
         log.info(
             "frontend.py:__main__ - Creating client SSH listener on port %s",
             ssh_port)
@@ -174,7 +174,7 @@ if __name__ == "__main__":
             ))
 
     if not args.st:
-        st_port = args.stp
+        st_port: int = args.stp
         log.info(
             "frontend.py:__main__ - Creating client Secure Telnet listener on port %s",
             st_port)
@@ -194,7 +194,7 @@ if __name__ == "__main__":
                                              ssl_handshake_timeout=5.0)
         all_servers.append(secure_telnet)
 
-    ws_port = args.wsp
+    ws_port: int = args.wsp
     log.info(
         "frontend.py:__main__ - Creating game engine websocket listener on port %s",
         ws_port)
